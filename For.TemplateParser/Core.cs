@@ -9,8 +9,8 @@ namespace For.TemplateParser
 {
     internal class Core
     {
-        internal delegate object delgGetProperty(object instance);
-        internal static Regex regex = new Regex("(?<={.)(.*?)(?=})");
+        private delegate object delgGetProperty(object instance);
+        private static Regex regex = new Regex("(?<={.)(.*?)(?=})");
 
         internal static IEnumerable<PropertyInfo> GetProps(object obj, IEnumerable<string> usedPropNames)
         {

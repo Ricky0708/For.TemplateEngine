@@ -51,7 +51,7 @@ namespace LogTemplateDemo.Controllers
             return "";
         }
 
-        [LogA("Hello {.obj}")]
+        [LogA("Hellon kitty {.obj}")]
         public string Test5(int? obj)
         {
             return "";
