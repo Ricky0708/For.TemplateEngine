@@ -13,7 +13,7 @@ namespace For.TemplateParser
     public class TemplateParserProvider
     {
 
-        public static string GetResult<T>(T obj, string template)
+        public static string BuildTemplate<T>(T obj, string template)
         {
             var usedPropertyName = Core.GetUsedPropertyName(template);
             var props = Core.GetProps(obj, usedPropertyName);
@@ -24,7 +24,7 @@ namespace For.TemplateParser
             }
             return template;
         }
-        public static string GetResult<T>(T obj, Func<T, string> func)
+        public static string BuildTemplate<T>(T obj, Func<T, string> func)
         {
             return func(obj);
         }

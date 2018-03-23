@@ -35,7 +35,7 @@ namespace LogTemplateDemo.Attributes
                     }
                     else
                     {
-                        log = TemplateParserProvider.GetResult(param.First().Value, _template);
+                        log = TemplateParserProvider.BuildTemplate(param.First().Value, _template);
                     }
                     break;
                 default:
