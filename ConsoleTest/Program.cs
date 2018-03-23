@@ -24,13 +24,14 @@ namespace ConsoleTest
             };
             var resultA = TemplateParserProvider.BuildTemplate(obj, template);
             var resultB = TemplateParserProvider.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
-            var resultC = TemplateParserProvider.BuildTemplate(new
-            {
-                Name = "Ricky",
-                Age = 25,
-                StandardDateTime = DateTime.Parse("2017/08/01"),
-                OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
-            }, template);
+            var resultC = TemplateParserProvider.BuildTemplate(
+                new
+                {
+                    Name = "Ricky",
+                    Age = 25,
+                    StandardDateTime = DateTime.Parse("2017/08/01"),
+                    OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
+                }, template);
 
             Console.WriteLine(resultA);
             Console.WriteLine(resultB);

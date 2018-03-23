@@ -13,6 +13,13 @@ namespace For.TemplateParser
     public class TemplateParserProvider
     {
 
+        /// <summary>
+        /// 組合物件與範本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="template"></param>
+        /// <returns></returns>
         public static string BuildTemplate<T>(T obj, string template)
         {
             var usedPropertyName = Core.GetUsedPropertyName(template);
@@ -24,6 +31,13 @@ namespace For.TemplateParser
             }
             return template;
         }
+        /// <summary>
+        /// 組合物件與範本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
         public static string BuildTemplate<T>(T obj, Func<T, string> func)
         {
             return func(obj);
