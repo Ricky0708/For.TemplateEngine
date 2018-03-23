@@ -9,15 +9,34 @@ namespace For.TemplateParser
 {
     internal class Core
     {
+        /// <summary>
+        /// 取得property的委派型別
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <returns></returns>
         private delegate object delgGetProperty(object instance);
+        /// <summary>
+        /// 由範本中抽取特殊標記的pattern
+        /// </summary>
         private static Regex regex = new Regex("(?<={.)(.*?)(?=})");
 
+        /// <summary>
+        /// 取出物件中被使用到的property清單
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="usedPropNames"></param>
+        /// <returns></returns>
         internal static IEnumerable<PropertyInfo> GetProps(object obj, IEnumerable<string> usedPropNames)
         {
             var props = obj.GetType().GetProperties().Where(p => usedPropNames.ToList().Contains(p.Name));
             return props;
         }
 
+        /// <summary>
+        /// 取出範本中的特殊標記的清單
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
         internal static IEnumerable<string> GetUsedPropertyName(string template)
         {
             if (!Caches.IsExist(CacheType.UsedPropertyName, template))
@@ -43,6 +62,13 @@ namespace For.TemplateParser
             return result;
         }
 
+        /// <summary>
+        /// 使用 expression 取出物件中property的value
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="prop"></param>
+        /// <returns></returns>
         internal static object GetPropValue<T>(T instance, PropertyInfo prop)
         {
 
