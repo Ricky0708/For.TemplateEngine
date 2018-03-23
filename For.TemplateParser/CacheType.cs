@@ -6,5 +6,7 @@ using System.Threading.Tasks;
 
 internal enum CacheType
 {
-    GetPropertyValue
+    GetPropertyValue,
+    UsedPropertyName,
+    Propertys
 }

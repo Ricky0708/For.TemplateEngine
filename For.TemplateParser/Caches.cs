@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace For.TemplateParser
     {
 
         private static Dictionary<string, object> dictionaryGetPropertyValue = new Dictionary<string, object>();
+        private static Dictionary<string, object> dictionaryUsedPropertyName = new Dictionary<string, object>();
+        private static Dictionary<string, object> dictionaryPropertys = new Dictionary<string, object>();
 
         /// <summary>
         /// check cache is exist
@@ -25,6 +28,12 @@ namespace For.TemplateParser
             {
                 case CacheType.GetPropertyValue:
                     result = dictionaryGetPropertyValue.ContainsKey(key);
+                    break;
+                case CacheType.UsedPropertyName:
+                    result = dictionaryUsedPropertyName.ContainsKey(key);
+                    break;
+                case CacheType.Propertys:
+                    result = dictionaryPropertys.ContainsKey(key);
                     break;
                 default:
                     break;
@@ -47,6 +56,12 @@ namespace For.TemplateParser
                 case CacheType.GetPropertyValue:
                     obj = dictionaryGetPropertyValue[key];
                     break;
+                case CacheType.UsedPropertyName:
+                    obj = dictionaryUsedPropertyName[key];
+                    break;
+                case CacheType.Propertys:
+                    obj = dictionaryPropertys[key];
+                    break;
                 default:
                     break;
             }
@@ -67,6 +82,12 @@ namespace For.TemplateParser
                 case CacheType.GetPropertyValue:
                     dictionaryGetPropertyValue.Add(key, value);
                     break;
+                case CacheType.UsedPropertyName:
+                    dictionaryUsedPropertyName.Add(key, value);
+                    break;
+                case CacheType.Propertys:
+                    dictionaryPropertys.Add(key, value);
+                    break;
                 default:
                     break;
             }
@@ -84,6 +105,12 @@ namespace For.TemplateParser
                 case CacheType.GetPropertyValue:
                     Monitor.Enter(dictionaryGetPropertyValue);
                     break;
+                case CacheType.UsedPropertyName:
+                    Monitor.Enter(dictionaryUsedPropertyName);
+                    break;
+                case CacheType.Propertys:
+                    Monitor.Enter(dictionaryPropertys);
+                    break;
                 default:
                     break;
             }
@@ -99,6 +126,12 @@ namespace For.TemplateParser
             {
                 case CacheType.GetPropertyValue:
                     Monitor.Exit(dictionaryGetPropertyValue);
+                    break;
+                case CacheType.UsedPropertyName:
+                    Monitor.Exit(dictionaryUsedPropertyName);
+                    break;
+                case CacheType.Propertys:
+                    Monitor.Exit(dictionaryPropertys);
                     break;
                 default:
                     break;

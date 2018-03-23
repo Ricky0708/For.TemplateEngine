@@ -14,7 +14,7 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-            var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+            var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}{.QQ}";
             var obj = new TestModel()
             {
                 Name = "Ricky",

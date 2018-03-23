@@ -16,6 +16,7 @@ namespace For.TemplateParser
         {
             var usedPropertyName = Core.GetUsedPropertyName(template);
             var props = Core.GetProps(obj, usedPropertyName);
+     
             foreach (var prop in props)
             {
                 template = template.Replace($"{{.{prop.Name}}}", Core.GetPropValue(obj, prop)?.ToString() ?? "#empty#");
