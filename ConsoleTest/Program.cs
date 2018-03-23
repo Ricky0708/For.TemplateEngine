@@ -22,9 +22,9 @@ namespace ConsoleTest
                 StandardDateTime = DateTime.Parse("2017/08/01"),
                 OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
             };
-            var resultA = TemplateParserProvider.GetLogString(obj, template);
-            var resultB = TemplateParserProvider.GetLogString(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
-            var resultC = TemplateParserProvider.GetLogString(new
+            var resultA = TemplateParserProvider.GetResult(obj, template);
+            var resultB = TemplateParserProvider.GetResult(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
+            var resultC = TemplateParserProvider.GetResult(new
             {
                 Name = "Ricky",
                 Age = 25,
