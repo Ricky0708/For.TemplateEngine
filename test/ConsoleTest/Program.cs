@@ -15,7 +15,7 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
             var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
-            var provider = new TemplateParserProvider();
+            var provider = new TemplateParser();
             var obj = new TestModel()
             {
                 Name = "Ricky",
@@ -25,21 +25,21 @@ namespace ConsoleTest
             };
             //for (int i = 0; i < 1000000; i++)
             //{
-            //    var resultA = TemplateParserProvider.BuildTemplate(obj, template);
+            //    var resultA = TemplateParser.BuildTemplate(obj, template);
             //    obj.Age += 1;
             //}
             Parallel.For((long) 0, 1000000, p =>
             {
                 var resultA = provider.BuildTemplate(obj, template);
-                //TemplateParserProvider.ClearCaches();
+                //TemplateParser.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {
                     throw new Exception();
                 }
                 obj.Age += 1;
             });
-            //var resultB = TemplateParserProvider.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
-            //var resultC = TemplateParserProvider.BuildTemplate(
+            //var resultB = TemplateParser.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
+            //var resultC = TemplateParser.BuildTemplate(
             //    new
             //    {
             //        Name = "Ricky",

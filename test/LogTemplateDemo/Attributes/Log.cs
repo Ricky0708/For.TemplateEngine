@@ -19,7 +19,7 @@ namespace LogTemplateDemo.Attributes
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            //TemplateParserProvider
+            //TemplateParser
             string log = "";
             switch (filterContext.ActionParameters.Count)
             {
@@ -35,7 +35,7 @@ namespace LogTemplateDemo.Attributes
                     }
                     else
                     {
-                        log = new TemplateParserProvider().BuildTemplate(param.First().Value, _template);
+                        log = new TemplateParser().BuildTemplate(param.First().Value, _template);
                     }
                     break;
                 default:

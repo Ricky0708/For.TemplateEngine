@@ -40,12 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultTemplateCache.cs" />
-    <Compile Include="CacheType.cs" />
+    <Compile Include="Caches\DefaultTemplateCache.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="NodeModel.cs" />
-    <Compile Include="TemplateParserProvider.cs" />
+    <Compile Include="Models\NodeModel.cs" />
+    <Compile Include="TemplateParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

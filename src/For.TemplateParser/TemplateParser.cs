@@ -7,18 +7,20 @@ using System.Runtime.Remoting;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using For.TemplateParser.Caches;
+using For.TemplateParser.Models;
 
 namespace For.TemplateParser
 {
-    public class TemplateParserProvider
+    public class TemplateParser
     {
         private readonly Core _core;
-        public TemplateParserProvider()
+        public TemplateParser()
         {
             _core = new Core();
         }
 
-        public TemplateParserProvider(ITemplateCache cache)
+        public TemplateParser(ITemplateCache cache)
         {
             _core = new Core(cache);
         }
