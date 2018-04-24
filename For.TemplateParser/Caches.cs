@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -44,7 +45,7 @@ namespace For.TemplateParser
             switch (cacheEnum)
             {
                 case CacheType.Template:
-                    obj = dictionaryTemplates[key];
+                    dictionaryTemplates.TryGetValue(key, out obj);
                     break;
                 default:
                     break;

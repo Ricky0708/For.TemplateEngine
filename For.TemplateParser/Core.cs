@@ -23,27 +23,23 @@ namespace For.TemplateParser
         /// <returns></returns>
         internal static Queue<NodeModel> BuildTemplate(Type type, string template)
         {
+
             if (!Caches.IsExist(CacheType.Template, template))
             {
-                try
+                Caches.Lock();
+                if (!Caches.IsExist(CacheType.Template, template))
                 {
-                    Caches.Lock();
-                    if (!Caches.IsExist(CacheType.Template, template))
-                    {
-                        Caches.Add(CacheType.Template, template, _BuildTemplate(type, template));
-                    }
+                    Caches.Add(CacheType.Template, template, _BuildTemplate(type, template));
                 }
-                catch (Exception)
-                {
-                    throw;
-                }
-                finally
-                {
-                    Caches.Unlock();
-                }
+                Caches.Unlock();
             }
 
             var result = Caches.GetValue(CacheType.Template, template) as Queue<NodeModel>;
+            if (result is null)
+            {
+                result = BuildTemplate(type, template);
+
+            }
             return result;
         }
 

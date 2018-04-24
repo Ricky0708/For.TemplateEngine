@@ -22,17 +22,21 @@ namespace ConsoleTest
                 StandardDateTime = DateTime.Parse("2017/08/01"),
                 OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
             };
-            for (int i = 0; i < 1000000; i++)
-            {
-                var resultA = TemplateParserProvider.BuildTemplate(obj, template);
-                obj.Age += 1;
-            }
-            //Parallel.For(0, 1000000, p =>
+            //for (int i = 0; i < 1000000; i++)
             //{
             //    var resultA = TemplateParserProvider.BuildTemplate(obj, template);
-            //    //TemplateParserProvider.ClearCaches();
             //    obj.Age += 1;
-            //});
+            //}
+            Parallel.For(0, 1000000, p =>
+            {
+                var resultA = TemplateParserProvider.BuildTemplate(obj, template);
+                //TemplateParserProvider.ClearCaches();
+                if (!resultA.StartsWith("Hi!"))
+                {
+                    throw new Exception();
+                }
+                obj.Age += 1;
+            });
             //var resultB = TemplateParserProvider.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
             //var resultC = TemplateParserProvider.BuildTemplate(
             //    new
