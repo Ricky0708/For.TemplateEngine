@@ -27,7 +27,7 @@ namespace For.TemplateParser
             {
                 try
                 {
-                    Caches.Lock(CacheType.Template);
+                    Caches.Lock();
                     if (!Caches.IsExist(CacheType.Template, template))
                     {
                         Caches.Add(CacheType.Template, template, _BuildTemplate(type, template));
@@ -39,7 +39,7 @@ namespace For.TemplateParser
                 }
                 finally
                 {
-                    Caches.Unlock(CacheType.Template);
+                    Caches.Unlock();
                 }
             }
 
@@ -51,22 +51,14 @@ namespace For.TemplateParser
         {
             var enumAry = new CacheType[] {
                 CacheType.Template,
-                CacheType.GetPropertyValue,
-                CacheType.Propertys,
-                CacheType.UsedPropertyName
             };
-            foreach (var item in enumAry)
-            {
-                Caches.Lock(item);
-            }
+
+            Caches.Lock();
             foreach (var item in enumAry)
             {
                 Caches.RemoveCache(item);
             }
-            foreach (var item in enumAry)
-            {
-                Caches.Unlock(item);
-            }
+            Caches.Unlock();
         }
 
         private static Queue<NodeModel> _BuildTemplate(Type type, string template)
