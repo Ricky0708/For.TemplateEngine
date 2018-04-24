@@ -10,10 +10,11 @@ namespace For.TemplateParser
 {
     internal static class Caches
     {
-
+        private static Object lockObject = new object();
         private static Dictionary<string, object> dictionaryGetPropertyValue = new Dictionary<string, object>();
         private static Dictionary<string, object> dictionaryUsedPropertyName = new Dictionary<string, object>();
         private static Dictionary<string, object> dictionaryPropertys = new Dictionary<string, object>();
+        private static Dictionary<string, object> dictionaryTemplates = new Dictionary<string, object>();
 
         /// <summary>
         /// check cache is exist
@@ -23,6 +24,7 @@ namespace For.TemplateParser
         /// <returns></returns>
         internal static bool IsExist(CacheType cacheEnum, string key)
         {
+            var n = lockObject;
             bool result = false;
             switch (cacheEnum)
             {
@@ -34,6 +36,9 @@ namespace For.TemplateParser
                     break;
                 case CacheType.Propertys:
                     result = dictionaryPropertys.ContainsKey(key);
+                    break;
+                case CacheType.Template:
+                    result = dictionaryTemplates.ContainsKey(key);
                     break;
                 default:
                     break;
@@ -49,7 +54,7 @@ namespace For.TemplateParser
         /// <returns></returns>
         internal static object GetValue(CacheType cacheEnum, string key)
         {
-
+            var n = lockObject;
             object obj = null;
             switch (cacheEnum)
             {
@@ -61,6 +66,9 @@ namespace For.TemplateParser
                     break;
                 case CacheType.Propertys:
                     obj = dictionaryPropertys[key];
+                    break;
+                case CacheType.Template:
+                    obj = dictionaryTemplates[key];
                     break;
                 default:
                     break;
@@ -77,6 +85,7 @@ namespace For.TemplateParser
         /// <returns></returns>
         internal static object Add(CacheType cacheEnum, string key, object value)
         {
+            var n = lockObject;
             switch (cacheEnum)
             {
                 case CacheType.GetPropertyValue:
@@ -87,6 +96,9 @@ namespace For.TemplateParser
                     break;
                 case CacheType.Propertys:
                     dictionaryPropertys.Add(key, value);
+                    break;
+                case CacheType.Template:
+                    dictionaryTemplates.Add(key, value);
                     break;
                 default:
                     break;
@@ -100,6 +112,7 @@ namespace For.TemplateParser
         /// <param name="cacheEnum"></param>
         internal static void Lock(CacheType cacheEnum)
         {
+            Monitor.Enter(lockObject);
             switch (cacheEnum)
             {
                 case CacheType.GetPropertyValue:
@@ -110,6 +123,9 @@ namespace For.TemplateParser
                     break;
                 case CacheType.Propertys:
                     Monitor.Enter(dictionaryPropertys);
+                    break;
+                case CacheType.Template:
+                    Monitor.Enter(dictionaryTemplates);
                     break;
                 default:
                     break;
@@ -133,9 +149,59 @@ namespace For.TemplateParser
                 case CacheType.Propertys:
                     Monitor.Exit(dictionaryPropertys);
                     break;
+                case CacheType.Template:
+                    Monitor.Exit(dictionaryTemplates);
+                    break;
                 default:
                     break;
             }
+            Monitor.Exit(lockObject);
+        }
+
+        internal static void RemoveCache(CacheType cacheEnum)
+        {
+            switch (cacheEnum)
+            {
+                case CacheType.GetPropertyValue:
+                    dictionaryGetPropertyValue.Clear();
+                    break;
+                case CacheType.UsedPropertyName:
+                    dictionaryUsedPropertyName.Clear();
+                    break;
+                case CacheType.Propertys:
+                    dictionaryPropertys.Clear();
+                    break;
+                case CacheType.Template:
+                    dictionaryTemplates.Clear();
+                    break;
+                default:
+                    break;
+            }
+            //switch (cacheEnum)
+            //{
+            //    case CacheType.GetPropertyValue:
+            //        Lock(CacheType.GetPropertyValue);
+            //        dictionaryGetPropertyValue.Clear();
+            //        Unlock(CacheType.GetPropertyValue);
+            //        break;
+            //    case CacheType.UsedPropertyName:
+            //        Lock(CacheType.UsedPropertyName);
+            //        dictionaryUsedPropertyName.Clear();
+            //        Unlock(CacheType.UsedPropertyName);
+            //        break;
+            //    case CacheType.Propertys:
+            //        Lock(CacheType.Propertys);
+            //        dictionaryPropertys.Clear();
+            //        Unlock(CacheType.Propertys);
+            //        break;
+            //    case CacheType.Template:
+            //        Lock(CacheType.Template);
+            //        dictionaryTemplates.Clear();
+            //        Unlock(CacheType.Template);
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
     }
 }

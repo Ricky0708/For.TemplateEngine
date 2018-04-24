@@ -8,5 +8,6 @@ internal enum CacheType
 {
     GetPropertyValue,
     UsedPropertyName,
-    Propertys
+    Propertys,
+    Template
 }

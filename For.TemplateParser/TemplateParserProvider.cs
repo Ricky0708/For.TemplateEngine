@@ -22,15 +22,17 @@ namespace For.TemplateParser
         /// <returns></returns>
         public static string BuildTemplate<T>(T obj, string template)
         {
-            var usedPropertyName = Core.GetUsedPropertyName(template);
-            var props = Core.GetProps(obj, usedPropertyName);
-     
-            foreach (var prop in props)
+            var n = Core.BuildTemplate(typeof(T), template);
+            var templateQue = new Queue<NodeModel>(n);
+            var sb = new StringBuilder();
+            while (templateQue.Count > 0)
             {
-                template = template.Replace($"{{.{prop.Name}}}", Core.GetPropValue(obj, prop)?.ToString() ?? "#empty#");
+                var item = templateQue.Dequeue();
+                sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
             }
-            return template;
+            return sb.ToString();
         }
+
         /// <summary>
         /// 組合物件與範本
         /// </summary>
@@ -41,6 +43,13 @@ namespace For.TemplateParser
         public static string BuildTemplate<T>(T obj, Func<T, string> func)
         {
             return func(obj);
+        }
+        /// <summary>
+        /// 清除所有快取
+        /// </summary>
+        public static void ClearCaches()
+        {
+            Core.ClearCache();
         }
     }
 }
