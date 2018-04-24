@@ -15,6 +15,7 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
             var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+            var provider = new TemplateParserProvider();
             var obj = new TestModel()
             {
                 Name = "Ricky",
@@ -27,9 +28,9 @@ namespace ConsoleTest
             //    var resultA = TemplateParserProvider.BuildTemplate(obj, template);
             //    obj.Age += 1;
             //}
-            Parallel.For(0, 1000000, p =>
+            Parallel.For((long) 0, 1000000, p =>
             {
-                var resultA = TemplateParserProvider.BuildTemplate(obj, template);
+                var resultA = provider.BuildTemplate(obj, template);
                 //TemplateParserProvider.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {

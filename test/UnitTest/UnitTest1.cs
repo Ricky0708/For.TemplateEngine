@@ -12,6 +12,7 @@ namespace UnitTest
         [TestMethod]
         public void PerformancTest()
         {
+            var provider = new TemplateParserProvider();
             var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             var obj = new TestModel()
             {
@@ -25,7 +26,7 @@ namespace UnitTest
             string resultA = "";
             Parallel.For(0, 1000000, p =>
             {
-                resultA = TemplateParserProvider.BuildTemplate(obj, template);
+                resultA = provider.BuildTemplate(obj, template);
                 //TemplateParserProvider.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {

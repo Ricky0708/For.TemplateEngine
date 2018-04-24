@@ -12,7 +12,16 @@ namespace For.TemplateParser
 {
     public class TemplateParserProvider
     {
+        private readonly Core _core;
+        public TemplateParserProvider()
+        {
+            _core = new Core();
+        }
 
+        public TemplateParserProvider(ITemplateCache cache)
+        {
+            _core = new Core(cache);
+        }
         /// <summary>
         /// 組合物件與範本
         /// </summary>
@@ -20,9 +29,9 @@ namespace For.TemplateParser
         /// <param name="obj"></param>
         /// <param name="template"></param>
         /// <returns></returns>
-        public static string BuildTemplate<T>(T obj, string template)
+        public string BuildTemplate<T>(T obj, string template)
         {
-            var n = Core.BuildTemplate(typeof(T), template);
+            var n = _core.BuildTemplate(typeof(T), template);
             var templateQue = new Queue<NodeModel>(n);
             var sb = new StringBuilder();
             while (templateQue.Count > 0)
@@ -40,16 +49,16 @@ namespace For.TemplateParser
         /// <param name="obj"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static string BuildTemplate<T>(T obj, Func<T, string> func)
+        public string BuildTemplate<T>(T obj, Func<T, string> func)
         {
             return func(obj);
         }
         /// <summary>
         /// 清除所有快取
         /// </summary>
-        public static void ClearCaches()
+        public void ClearCaches()
         {
-            Core.ClearCache();
+            _core.ClearCache();
         }
     }
 }

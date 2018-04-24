@@ -10,31 +10,42 @@ namespace For.TemplateParser
 {
     internal class Core
     {
+        private readonly ITemplateCache _templateCache;
 
         /// <summary>
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
-        private static Regex regex = new Regex("({.\\w*})");
+        private static readonly Regex _regex = new Regex("({.\\w*})");
+
+        public Core()
+        {
+            _templateCache = new DefaultTemplateCache();
+        }
+        public Core(ITemplateCache templateCache)
+        {
+            _templateCache = templateCache;
+        }
 
         /// <summary>
         /// 建立範本的委派及cache
         /// </summary>
+        /// <param name="type"></param>
         /// <param name="template"></param>
         /// <returns></returns>
-        internal static Queue<NodeModel> BuildTemplate(Type type, string template)
+        internal Queue<NodeModel> BuildTemplate(Type type, string template)
         {
 
-            if (!Caches.IsExist(CacheType.Template, template))
+            if (!_templateCache.IsExist(template))
             {
-                Caches.Lock();
-                if (!Caches.IsExist(CacheType.Template, template))
+                _templateCache.Lock();
+                if (!_templateCache.IsExist(template))
                 {
-                    Caches.Add(CacheType.Template, template, _BuildTemplate(type, template));
+                    _templateCache.Add(template, _BuildTemplate(type, template));
                 }
-                Caches.Unlock();
+                _templateCache.Unlock();
             }
 
-            var result = Caches.GetValue(CacheType.Template, template) as Queue<NodeModel>;
+            var result = _templateCache.GetValue(template) as Queue<NodeModel>;
             if (result is null)
             {
                 result = BuildTemplate(type, template);
@@ -43,23 +54,16 @@ namespace For.TemplateParser
             return result;
         }
 
-        internal static void ClearCache()
+        internal void ClearCache()
         {
-            var enumAry = new CacheType[] {
-                CacheType.Template,
-            };
-
-            Caches.Lock();
-            foreach (var item in enumAry)
-            {
-                Caches.RemoveCache(item);
-            }
-            Caches.Unlock();
+            _templateCache.Lock();
+            _templateCache.RemoveCache();
+            _templateCache.Unlock();
         }
 
         private static Queue<NodeModel> _BuildTemplate(Type type, string template)
         {
-            var array = regex.Split(template);
+            var array = _regex.Split(template);
             var que = new Queue<NodeModel>();
             foreach (var item in array)
             {
@@ -85,11 +89,11 @@ namespace For.TemplateParser
 
         private static delgGetProperty _BuildGetPropertyMethod(Type type, string prop)
         {
-            ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
-            MemberExpression propertyExp = Expression.Property(Expression.Convert(targetExp, type), prop);
+            var targetExp = Expression.Parameter(typeof(object), "target");
+            var propertyExp = Expression.Property(Expression.Convert(targetExp, type), prop);
 
-            LambdaExpression lambdax = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(propertyExp, typeof(object)), targetExp);
-            delgGetProperty delg = (delgGetProperty)lambdax.Compile();
+            var lambdax = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(propertyExp, typeof(object)), targetExp);
+            var delg = (delgGetProperty)lambdax.Compile();
             return delg;
         }
     }
