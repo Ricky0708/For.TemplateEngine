@@ -50,7 +50,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\For.TemplateParser\For.TemplateParser.csproj">
+    <ProjectReference Include="..\..\src\For.TemplateParser\For.TemplateParser.csproj">
       <Project>{d27e6989-37d6-4a3b-8cf9-a302cfb8618b}</Project>
       <Name>For.TemplateParser</Name>
     </ProjectReference>
