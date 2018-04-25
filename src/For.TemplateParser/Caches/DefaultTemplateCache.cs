@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace For.TemplateParser.Caches
 {
-    public interface ITemplateCache
+    public interface ITemplateCacheProvider
     {
         bool IsExist(string key);
         object GetValue(string key);
@@ -12,7 +12,7 @@ namespace For.TemplateParser.Caches
         void Unlock();
         void RemoveCache();
     }
-    internal class DefaultTemplateCache : ITemplateCache
+    internal class DefaultTemplateCacheProvider : ITemplateCacheProvider
     {
         private readonly Dictionary<string, object> _dictionaryTemplates = new Dictionary<string, object>();
 

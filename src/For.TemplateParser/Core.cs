@@ -12,18 +12,19 @@ namespace For.TemplateParser
 {
     internal class Core
     {
-        private readonly ITemplateCache _templateCache;
+        private readonly ITemplateCacheProvider _templateCache;
 
         /// <summary>
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
-        private static readonly Regex _regex = new Regex("({.\\w*})");
+        private static Regex _regexProperty => new Regex(@"({\..*?})");
+        private static Regex _regexList => new Regex(@"(\[\#.*?])");
 
         public Core()
         {
-            _templateCache = new DefaultTemplateCache();
+            _templateCache = new DefaultTemplateCacheProvider();
         }
-        public Core(ITemplateCache templateCache)
+        public Core(ITemplateCacheProvider templateCache)
         {
             _templateCache = templateCache;
         }
@@ -65,16 +66,17 @@ namespace For.TemplateParser
 
         private static Queue<NodeModel> _BuildTemplate(Type type, string template)
         {
-            var array = _regex.Split(template);
+            var forPropertyArray = _regexProperty.Split(template);
+            var forListArray = _regexList.Split(template);
             var que = new Queue<NodeModel>();
-            foreach (var item in array)
+            foreach (var item in forPropertyArray)
             {
                 if (item.StartsWith("{."))
                 {
                     que.Enqueue(new NodeModel()
                     {
                         Type = NodeType.Property,
-                        NodeDelegateValue = _BuildGetPropertyMethod(type, item.Replace("{.", "").Replace("}", "")),
+                        NodeDelegateValue = _BuildGetPropertyMethod(type, item.Replace("{.", "").Replace("}", "").Split('.')),
                     });
                 }
                 else
@@ -89,14 +91,20 @@ namespace For.TemplateParser
             return que;
         }
 
-        private static delgGetProperty _BuildGetPropertyMethod(Type type, string prop)
+        private static delgGetProperty _BuildGetPropertyMethod(Type type, params string[] props)
         {
-            var targetExp = Expression.Parameter(typeof(object), "target");
-            var propertyExp = Expression.Property(Expression.Convert(targetExp, type), prop);
+            delgGetProperty dlgResult = null;
+            ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
+            Expression memberExp = Expression.Convert(targetExp, type);
+            LambdaExpression lambdaExp;
 
-            var lambdax = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(propertyExp, typeof(object)), targetExp);
-            var delg = (delgGetProperty)lambdax.Compile();
-            return delg;
+            for (int i = 0; i < props.Length; i++)
+            {
+                memberExp = Expression.Property(memberExp, props[i]);
+            }
+            lambdaExp = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(memberExp, typeof(object)), targetExp);
+            dlgResult = (delgGetProperty)lambdaExp.Compile();
+            return dlgResult;
         }
     }
 }

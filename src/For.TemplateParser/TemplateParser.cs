@@ -20,7 +20,7 @@ namespace For.TemplateParser
             _core = new Core();
         }
 
-        public TemplateParser(ITemplateCache cache)
+        public TemplateParser(ITemplateCacheProvider cache)
         {
             _core = new Core(cache);
         }
