@@ -14,7 +14,9 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-            var template = "Hi! {.Name}, your father name is [#{.Details.Father.Name}], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+
+    
+            var template = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             var provider = new TemplateParser();
             var obj = new TestModel()
             {

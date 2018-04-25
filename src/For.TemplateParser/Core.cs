@@ -18,7 +18,7 @@ namespace For.TemplateParser
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
         private static Regex _regexProperty => new Regex(@"({\..*?})");
-        private static Regex _regexList => new Regex(@"(\[\#.*?])");
+        private static Regex _regexList => new Regex(@"(\[\#.*?(\#])+)");
 
         public Core()
         {
