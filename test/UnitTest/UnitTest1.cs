@@ -9,24 +9,31 @@ namespace UnitTest
     [TestClass]
     public class UnitTest1
     {
-        [TestMethod]
-        public void PerformancTest()
+        private string template = "";
+        private TemplateParser provider;
+        private TestModel model;
+        [TestInitialize]
+        public void Config()
         {
-            var provider = new TemplateParser();
-            var template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
-            var obj = new TestModel()
+            template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+            provider = new TemplateParser();
+            model = new TestModel()
             {
                 Name = "Ricky",
                 Age = 25,
                 StandardDateTime = DateTime.Parse("2017/08/01"),
                 OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
             };
+        }
+        [TestMethod]
+        public void PerformancTest()
+        {
             Stopwatch watch = new Stopwatch();
             watch.Start();
             string resultA = "";
             Parallel.For(0, 1000000, p =>
             {
-                resultA = provider.BuildTemplate(obj, template);
+                resultA = provider.BuildTemplate(model, template);
                 //TemplateParser.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {
@@ -35,6 +42,13 @@ namespace UnitTest
             });
             watch.Stop();
             Assert.IsTrue(watch.ElapsedMilliseconds < 2000);
+        }
+
+        [TestMethod]
+        public void ResultTest()
+        {
+            string resultA = "";
+            resultA = provider.BuildTemplate(model, template);
             Assert.AreEqual(
                 resultA,
                 "Hi! Ricky, your age is 25, 8/1/2017 12:00:00 AM, 8/2/2017 12:00:00 AM +08:00");
