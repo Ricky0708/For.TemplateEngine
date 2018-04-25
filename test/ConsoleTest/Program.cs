@@ -15,8 +15,8 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
 
-    
-            var template = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+
+            var template = "Hi! {.Name}, your father name is {.Detail.Father.Name}{.Detail.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}, [#{.Details.Id}#]";
             var provider = new TemplateParser();
             var obj = new TestModel()
             {
@@ -37,7 +37,12 @@ namespace ConsoleTest
                         Name = "Eric",
                         Age = 51
                     }
-                }
+                },
+                Details = new List<Detail>()
+                 {
+                     new Detail() {  Id = 0},
+                     new Detail() { Id = 1}
+                 }
             };
             for (int i = 0; i < 1000000; i++)
             {
