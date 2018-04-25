@@ -17,7 +17,9 @@ namespace For.TemplateParser
         /// <summary>
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
-        private static Regex _regexProperty => new Regex(@"({\..*?})");
+        //private static Regex _regexProperty => new Regex(@"({\..*?})");
+        private static Regex _regexProperty => new Regex(@"(?<=[^#])({\..*?})(?<=[^#])|(^{\..*?})");
+
         private static Regex _regexList => new Regex(@"(\[\#.*?(\#])+)");
 
         public Core()
@@ -67,7 +69,6 @@ namespace For.TemplateParser
         private static Queue<NodeModel> _BuildTemplate(Type type, string template)
         {
             var forPropertyArray = _regexProperty.Split(template);
-            var forListArray = _regexList.Split(template);
             var que = new Queue<NodeModel>();
             foreach (var item in forPropertyArray)
             {
@@ -75,8 +76,21 @@ namespace For.TemplateParser
                 {
                     que.Enqueue(new NodeModel()
                     {
-                        Type = NodeType.Property,
+                        Type = NodeType.Delegate,
                         NodeDelegateValue = _BuildGetPropertyMethod(type, item.Replace("{.", "").Replace("}", "").Split('.')),
+                    });
+                }
+                else if (item.IndexOf("[#") > -1)
+                {
+                    var temp = item;
+                    int first = temp.IndexOf("[#");
+                    temp = temp.Remove(first, 2);
+                    int last = temp.IndexOf("#]");
+                    temp = temp.Remove(last, 2);
+                    que.Enqueue(new NodeModel()
+                    {
+                        Type = NodeType.Collection,
+                        SubQue = _BuildTemplate(type, temp),
                     });
                 }
                 else
@@ -97,7 +111,6 @@ namespace For.TemplateParser
             ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
             Expression memberExp = Expression.Convert(targetExp, type);
             LambdaExpression lambdaExp;
-
             for (int i = 0; i < props.Length; i++)
             {
                 memberExp = Expression.Property(memberExp, props[i]);

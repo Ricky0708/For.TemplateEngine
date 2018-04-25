@@ -24,7 +24,7 @@ namespace ConsoleTest
                 Age = 25,
                 StandardDateTime = DateTime.Parse("2017/08/01"),
                 OffsetDateTime = DateTimeOffset.Parse("2017/08/02"),
-                Details = new Detail()
+                Detail = new Detail()
                 {
                     Id = 0,
                     Mother = new Parent()
@@ -39,21 +39,21 @@ namespace ConsoleTest
                     }
                 }
             };
-            //for (int i = 0; i < 1000000; i++)
-            //{
-            //    var resultA = provider.BuildTemplate(obj, template);
-            //    obj.Age += 1;
-            //}
-            Parallel.For((long)0, 1000000, p =>
+            for (int i = 0; i < 1000000; i++)
             {
                 var resultA = provider.BuildTemplate(obj, template);
-                //TemplateParser.ClearCaches();
-                if (!resultA.StartsWith("Hi!"))
-                {
-                    throw new Exception();
-                }
                 obj.Age += 1;
-            });
+            }
+            //Parallel.For((long)0, 1000000, p =>
+            //{
+            //    var resultA = provider.BuildTemplate(obj, template);
+            //    //TemplateParser.ClearCaches();
+            //    if (!resultA.StartsWith("Hi!"))
+            //    {
+            //        throw new Exception();
+            //    }
+            //    obj.Age += 1;
+            //});
             //var resultB = TemplateParser.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
             //var resultC = TemplateParser.BuildTemplate(
             //    new

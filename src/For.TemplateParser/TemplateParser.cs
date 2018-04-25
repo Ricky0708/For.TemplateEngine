@@ -33,17 +33,37 @@ namespace For.TemplateParser
         /// <returns></returns>
         public string BuildTemplate<T>(T obj, string template)
         {
-            var n = _core.BuildTemplate(typeof(T), template);
-            var templateQue = new Queue<NodeModel>(n);
+            var que = _core.BuildTemplate(typeof(T), template);
+            var sb = new StringBuilder();
+            return ProcessQue(obj, que);
+        }
+        private string ProcessQue<T>(T obj, Queue<NodeModel> que)
+        {
+            var templateQue = new Queue<NodeModel>(que);
             var sb = new StringBuilder();
             while (templateQue.Count > 0)
             {
                 var item = templateQue.Dequeue();
-                sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
+                //var result = item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj);
+                object result = "";
+                switch (item.Type)
+                {
+                    case NodeType.String:
+                        result = item.NodeStringValue;
+                        break;
+                    case NodeType.Collection:
+                        result = ProcessQue(obj, item.SubQue);
+                        break;
+                    case NodeType.Delegate:
+                        result = item.NodeDelegateValue(obj);
+                        break;
+                    default:
+                        break;
+                }
+                sb.Append(result);
             }
             return sb.ToString();
         }
-
         /// <summary>
         /// 組合物件與範本
         /// </summary>

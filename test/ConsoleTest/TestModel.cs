@@ -12,7 +12,9 @@ namespace ConsoleTest
         public int Age { get; set; }
         public DateTime StandardDateTime { get; set; }
         public DateTimeOffset OffsetDateTime { get; set; }
-        public Detail Details { get; set; }
+        public Detail Detail { get; set; }
+        public List<Detail> Details { get; set; }
+
     }
     public class Detail
     {
