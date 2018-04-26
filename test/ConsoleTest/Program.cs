@@ -15,7 +15,7 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
 
-    
+
             var template = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             var provider = new TemplateParser();
             var obj = new TestModel()
@@ -39,11 +39,23 @@ namespace ConsoleTest
                     }
                 }
             };
-            //for (int i = 0; i < 1000000; i++)
-            //{
-            //    var resultA = provider.BuildTemplate(obj, template);
-            //    obj.Age += 1;
-            //}
+
+            for (int i = 0; i < 1000000; i++)
+            {
+                var n = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}"
+                    .Replace("{.Name}", obj.Name)
+                    .Replace("{.Details.Father.Name}", obj.Details.Father.Name)
+                    .Replace("{.Details.Mother.Name}", obj.Details.Mother.Name)
+                    .Replace("{.Age}", obj.Age.ToString())
+                    .Replace("{.StandardDateTime}", obj.StandardDateTime.ToString())
+                    .Replace("{.OffsetDateTime}", obj.OffsetDateTime.ToString());
+            }
+            var a = "";
+            for (int i = 0; i < 1000000; i++)
+            {
+                var resultA = provider.BuildTemplate(obj, template);
+                obj.Age += 1;
+            }
             Parallel.For((long)0, 1000000, p =>
             {
                 var resultA = provider.BuildTemplate(obj, template);
