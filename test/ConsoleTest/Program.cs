@@ -1,6 +1,7 @@
 ﻿using For.TemplateParser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,8 +15,6 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-
-
             var template = "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             var provider = new TemplateParser();
             var obj = new TestModel()
@@ -40,6 +39,9 @@ namespace ConsoleTest
                 }
             };
 
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            
             for (int i = 0; i < 1000000; i++)
             {
                 var n = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}"
@@ -50,12 +52,17 @@ namespace ConsoleTest
                     .Replace("{.StandardDateTime}", obj.StandardDateTime.ToString())
                     .Replace("{.OffsetDateTime}", obj.OffsetDateTime.ToString());
             }
-            var a = "";
+            watch.Stop();
+            Console.WriteLine(watch.ElapsedMilliseconds);
+            watch.Reset();
+            watch.Start();
             for (int i = 0; i < 1000000; i++)
             {
                 var resultA = provider.BuildTemplate(obj, template);
                 obj.Age += 1;
             }
+            watch.Stop();
+            Console.WriteLine(watch.ElapsedMilliseconds);
             Parallel.For((long)0, 1000000, p =>
             {
                 var resultA = provider.BuildTemplate(obj, template);
