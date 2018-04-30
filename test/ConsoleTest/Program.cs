@@ -16,6 +16,8 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
             var template = "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+            template += "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
+            template += "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             var provider = new TemplateParser();
             var obj = new TestModel()
             {
@@ -41,10 +43,19 @@ namespace ConsoleTest
 
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            
+
+            //for (int i = 0; i < 1000000; i++)
+            //{
+            //    var n = $"Hi! {obj.Name}, your father name is [#{obj.Details.Father.Name}[#{obj.Details.Mother.Name}#]#], your age is {obj.Age}, {obj.StandardDateTime}, {obj.OffsetDateTime}" +
+            //        $"Hi! {obj.Name}, your father name is [#{obj.Details.Father.Name}[#{obj.Details.Mother.Name}#]#], your age is {obj.Age}, {obj.StandardDateTime}, {obj.OffsetDateTime}" +
+            //        $"Hi! {obj.Name}, your father name is [#{obj.Details.Father.Name}[#{obj.Details.Mother.Name}#]#], your age is {obj.Age}, {obj.StandardDateTime}, {obj.OffsetDateTime}";
+            //}
+
             for (int i = 0; i < 1000000; i++)
             {
-                var n = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}"
+                var n = "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}" +
+                    "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}" +
+                    "Hi! {.Name}, your father name is [#{.Details.Father.Name}[#{.Details.Mother.Name}#]#], your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}"
                     .Replace("{.Name}", obj.Name)
                     .Replace("{.Details.Father.Name}", obj.Details.Father.Name)
                     .Replace("{.Details.Mother.Name}", obj.Details.Mother.Name)

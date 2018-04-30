@@ -33,15 +33,16 @@ namespace For.TemplateParser
         /// <returns></returns>
         public string BuildTemplate<T>(T obj, string template)
         {
-            var n = _core.BuildTemplate(typeof(T), template);
-            var templateQue = new Queue<NodeModel>(n);
-            var sb = new StringBuilder();
-            while (templateQue.Count > 0)
-            {
-                var item = templateQue.Dequeue();
-                sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
-            }
-            return sb.ToString();
+            var n = _core.BuildTemplate2(typeof(T), template);
+            //var templateQue = new Queue<NodeModel>(n);
+            //var sb = new StringBuilder();
+            //while (templateQue.Count > 0)
+            //{
+            //    var item = templateQue.Dequeue();
+            //    sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
+            //}
+            //return sb.ToString();
+            return n.Invoke(obj) as string;
         }
 
         /// <summary>
