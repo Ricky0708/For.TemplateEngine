@@ -20,7 +20,6 @@ namespace For.TemplateParser.Caches
         /// <summary>
         /// check cache is exist
         /// </summary>
-        /// <param name="cacheEnum">which cache</param>
         /// <param name="key"></param>
         /// <returns></returns>
         public bool IsExist(string key)
@@ -33,7 +32,6 @@ namespace For.TemplateParser.Caches
         /// <summary>
         /// get cache
         /// </summary>
-        /// <param name="cacheEnum"></param>
         /// <param name="key"></param>
         /// <returns></returns>
         public object GetValue(string key)
@@ -45,7 +43,6 @@ namespace For.TemplateParser.Caches
         /// <summary>
         /// add to cache
         /// </summary>
-        /// <param name="cacheEnum"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -62,7 +59,6 @@ namespace For.TemplateParser.Caches
         /// <summary>
         /// lock cache, make thread save
         /// </summary>
-        /// <param name="cacheEnum"></param>
         public void Lock()
         {
             Monitor.Enter(_dictionaryTemplates);
