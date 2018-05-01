@@ -1,7 +1,9 @@
 # For.TemplateParser
 高效能範本文字動態取代工具
+可使用在任何需要預先或是讓使用者自行編輯的案例底下
+例如：簡單的操作Log紀錄、Mail Template、Notification Template...等
 
-不支援集合！！
+**不支援集合！！**
 
 # 使用方式
 * 範本
