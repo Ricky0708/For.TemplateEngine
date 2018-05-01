@@ -40,6 +40,22 @@ namespace For.TemplateParser
             var n = _core.BuildTemplateInDelegate<T>(template, cacheKey ?? typeof(T).Name);
             return n.Invoke(obj) as string;
         }
+
+
+        /// <summary>
+        /// Register template to cache and get the key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="template"></param>
+        /// <param name="cacheKey"></param>
+        /// <returns></returns>
+        public string RegisterTemplate<T>(string template, string cacheKey = null)
+        {
+            var key = cacheKey ?? typeof(T).Name;
+            _core.RegisterTemplate<T>(template, key);
+            return key;
+        }
+
         [Obsolete("舊的方式，不再使用")]
         public string BuildTemplateInQue<T>(T obj, string template)
         {
@@ -52,6 +68,8 @@ namespace For.TemplateParser
             }
             return sb.ToString();
         }
+
+     
         /// <summary>
         /// 組合物件與範本
         /// </summary>

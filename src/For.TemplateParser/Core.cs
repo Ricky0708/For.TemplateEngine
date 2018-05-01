@@ -53,8 +53,33 @@ namespace For.TemplateParser
 
             }
             return result;
-
         }
+
+        public void RegisterTemplate<T>(string template, string cacheKey)
+        {
+            var type = typeof(T);
+            if (!_templateCache.IsExist(cacheKey))
+            {
+                _templateCache.Lock();
+                if (!_templateCache.IsExist(cacheKey))
+                {
+                    _templateCache.Add(cacheKey, _BuildTemplateInDelegate(type, template));
+                }
+                _templateCache.Unlock();
+            }
+
+            if (GetTemplateDelegate(cacheKey) is null)
+            {
+                BuildTemplateInDelegate<T>(template, cacheKey);
+            }
+        }
+
+        internal delgGetProperty GetTemplateDelegate(string cacheKey)
+        {
+            var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
+            return result;
+        }
+
         internal delgGetProperty ReBuildTemplateInDelegate<T>(string template, string cacheKey)
         {
             var type = typeof(T);
@@ -210,5 +235,7 @@ namespace For.TemplateParser
             dlgResult = (delgGetProperty)lambdaExp.Compile();
             return dlgResult;
         }
+
+   
     }
 }
