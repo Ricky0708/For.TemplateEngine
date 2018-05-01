@@ -6,21 +6,19 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using For.TemplateParser.Caches;
 using For.TemplateParser.Models;
-using static For.TemplateParser.Models.NodeModel;
 
 namespace For.TemplateParser
 {
     internal class Core
     {
+        internal delegate object delgGetProperty(object instance);
         private readonly ITemplateCacheProvider _templateCache;
 
         /// <summary>
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
         private static Regex _regexProperty => new Regex(@"({\..*?})");
-
-        private TemplateParserConfig _templateParserConfig;
-        //private static Regex _regexList => new Regex(@"(\[\#.*?(\#])+)");
+        private readonly TemplateParserConfig _templateParserConfig;
 
         internal Core(TemplateParserConfig templateParserConfig)
         {
@@ -33,90 +31,59 @@ namespace For.TemplateParser
             _templateParserConfig = templateParserConfig;
         }
 
-        internal delgGetProperty BuildTemplateInDelegate<T>(string template, string cacheKey)
+        /// <summary>
+        /// register template and cache
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="template"></param>
+        /// <param name="cacheKey"></param>
+        internal void RegisterTemplate(Type type, string template, string cacheKey)
         {
-            var type = typeof(T);
-            if (!_templateCache.IsExist(cacheKey))
+            var count = 0;
+            while (true)
             {
+                count += 1;
                 _templateCache.Lock();
                 if (!_templateCache.IsExist(cacheKey))
                 {
                     _templateCache.Add(cacheKey, _BuildTemplateInDelegate(type, template));
                 }
-                _templateCache.Unlock();
-            }
-
-            var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
-            if (result is null)
-            {
-                result = BuildTemplateInDelegate<T>(template, cacheKey);
-
-            }
-            return result;
-        }
-
-        public void RegisterTemplate<T>(string template, string cacheKey)
-        {
-            var type = typeof(T);
-            if (!_templateCache.IsExist(cacheKey))
-            {
-                _templateCache.Lock();
-                if (!_templateCache.IsExist(cacheKey))
+                else
                 {
-                    _templateCache.Add(cacheKey, _BuildTemplateInDelegate(type, template));
+                    _templateCache.Reset(cacheKey, _BuildTemplateInDelegate(type, template));
                 }
                 _templateCache.Unlock();
-            }
 
-            if (GetTemplateDelegate(cacheKey) is null)
-            {
-                BuildTemplateInDelegate<T>(template, cacheKey);
+                if (GetTemplateDelegate(cacheKey) is null)
+                {
+                    continue;
+                }
+                System.Threading.Thread.Sleep(500);
+                if (count > 5)
+                {
+                    throw new Exception("Can't generate template");
+                }
+                break;
             }
         }
 
+        /// <summary>
+        /// get delegate method by cache key
+        /// </summary>
+        /// <param name="cacheKey"></param>
+        /// <returns></returns>
         internal delgGetProperty GetTemplateDelegate(string cacheKey)
         {
             var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
             return result;
         }
 
-        internal delgGetProperty ReBuildTemplateInDelegate<T>(string template, string cacheKey)
-        {
-            var type = typeof(T);
-            if (_templateCache.IsExist(cacheKey))
-            {
-                _templateCache.Lock();
-                if (_templateCache.IsExist(cacheKey))
-                {
-                    _templateCache.Reset(cacheKey, _BuildTemplateInDelegate(type, template));
-                }
-                else
-                {
-                    BuildTemplateInDelegate<T>(template, cacheKey);
-                }
-                _templateCache.Unlock();
-            }
-            else
-            {
-                BuildTemplateInDelegate<T>(template, cacheKey);
-            }
-
-            var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
-            if (result is null)
-            {
-                result = BuildTemplateInDelegate<T>(template, cacheKey);
-            }
-            return result;
-        }
-
-
-        internal void ClearCache()
-        {
-            _templateCache.Lock();
-            _templateCache.RemoveCache();
-            _templateCache.Unlock();
-        }
-
+        /// <summary>
+        /// use type and template to build delegate
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="template"></param>
+        /// <returns></returns>
         private delgGetProperty _BuildTemplateInDelegate(Type type, string template)
         {
             var forPropertyArray = _regexProperty.Split(template);
@@ -135,12 +102,25 @@ namespace For.TemplateParser
             var lambda = lambdaExpr.Compile();
             return lambda;
         }
+
+        /// <summary>
+        /// generate member expression
+        /// </summary>
+        /// <param name="targetExp"></param>
+        /// <param name="props"></param>
+        /// <returns></returns>
         private Expression _BuildGetPropertyExpr(Expression targetExp, params string[] props)
         {
             var memberExp = props.Aggregate(targetExp, Expression.Property);
-            return _GetToStringExpression(memberExp);
+            return _BuildToStringExpression(memberExp);
         }
-        private Expression _GetToStringExpression(Expression memberExp)
+
+        /// <summary>
+        /// generate  "ToString(object[])" MethodCallExpression
+        /// </summary>
+        /// <param name="memberExp"></param>
+        /// <returns></returns>
+        private Expression _BuildToStringExpression(Expression memberExp)
         {
             var propType = ((PropertyInfo)(memberExp as MemberExpression).Member).PropertyType;
             MethodInfo method;
@@ -163,79 +143,22 @@ namespace For.TemplateParser
             }
             return Expression.Convert(memberExp, typeof(object));
         }
+
+        /// <summary>
+        /// generate const expression
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private static Expression _BuildConstExpr(string value)
         {
             return Expression.Constant(value);
         }
 
-        /// <summary>
-        /// 建立範本的委派及cache
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="template"></param>
-        /// <returns></returns>
-        [Obsolete("舊的方式，不再使用")]
-        internal Queue<NodeModel> BuildTemplateInQue(Type type, string template)
+        internal void ClearCache()
         {
-
-            if (!_templateCache.IsExist(template))
-            {
-                _templateCache.Lock();
-                if (!_templateCache.IsExist(template))
-                {
-                    _templateCache.Add(template, _BuildTemplateInQue(type, template));
-                }
-                _templateCache.Unlock();
-            }
-
-            var result = _templateCache.GetValue(template) as Queue<NodeModel>;
-            if (result is null)
-            {
-                result = BuildTemplateInQue(type, template);
-
-            }
-            return result;
+            _templateCache.Lock();
+            _templateCache.RemoveCache();
+            _templateCache.Unlock();
         }
-        [Obsolete("舊的方式，不再使用")]
-        private static Queue<NodeModel> _BuildTemplateInQue(Type type, string template)
-        {
-            var forPropertyArray = _regexProperty.Split(template);
-            //var forListArray = _regexList.Split(template);
-            var que = new Queue<NodeModel>();
-            foreach (var item in forPropertyArray)
-            {
-                if (item.StartsWith("{."))
-                {
-                    que.Enqueue(new NodeModel()
-                    {
-                        Type = NodeType.Property,
-                        NodeDelegateValue = _BuildGetPropertyMethod(type, item.Replace("{.", "").Replace("}", "").Split('.')),
-                    });
-                }
-                else
-                {
-                    que.Enqueue(new NodeModel()
-                    {
-                        Type = NodeType.String,
-                        NodeStringValue = item,
-                    });
-                }
-            }
-            return que;
-        }
-        [Obsolete("舊的方式，不再使用")]
-        private static delgGetProperty _BuildGetPropertyMethod(Type type, params string[] props)
-        {
-            delgGetProperty dlgResult = null;
-            var targetExp = Expression.Parameter(typeof(object), "target");
-            Expression memberExp = Expression.Convert(targetExp, type);
-
-            memberExp = props.Aggregate(memberExp, Expression.Property);
-            var lambdaExp = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(memberExp, typeof(object)), targetExp);
-            dlgResult = (delgGetProperty)lambdaExp.Compile();
-            return dlgResult;
-        }
-
-   
     }
 }

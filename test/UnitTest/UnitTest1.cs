@@ -35,9 +35,10 @@ namespace UnitTest
             Stopwatch watch = new Stopwatch();
             watch.Start();
             string resultA = "";
+            provider.RegisterTemplate<TestModel>(template);
             Parallel.For(0, 1000000, p =>
             {
-                resultA = provider.BuildTemplate(model, template);
+                resultA = provider.BuildTemplate(model);
                 //TemplateParser.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {
@@ -52,7 +53,8 @@ namespace UnitTest
         public void ResultTest()
         {
             string resultA = "";
-            resultA = provider.BuildTemplate(model, template);
+            provider.RegisterTemplate<TestModel>(template);
+            resultA = provider.BuildTemplate(model);
             Assert.AreEqual(
                 resultA,
                 "Hi! Ricky, your age is 25, 20170801, 2017/08/02");

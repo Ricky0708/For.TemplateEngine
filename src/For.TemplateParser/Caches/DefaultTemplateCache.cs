@@ -5,11 +5,38 @@ namespace For.TemplateParser.Caches
 {
     public interface ITemplateCacheProvider
     {
+        /// <summary>
+        /// check cache is exist
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         bool IsExist(string key);
+        /// <summary>
+        /// get cache
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         object GetValue(string key);
+        /// <summary>
+        /// add to cache
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         void Add(string key, object value);
+        /// <summary>
+        /// reset value by key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         void Reset(string key, object value);
+        /// <summary>
+        /// lock cache, make thread save
+        /// </summary>
         void Lock();
+        /// <summary>
+        /// unlock cache
+        /// </summary>
         void Unlock();
         void RemoveCache();
     }
@@ -51,6 +78,11 @@ namespace For.TemplateParser.Caches
             _dictionaryTemplates.Add(key, value);
         }
 
+        /// <summary>
+        /// reset value by key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public void Reset(string key, object value)
         {
             _dictionaryTemplates[key] = value;
@@ -72,7 +104,9 @@ namespace For.TemplateParser.Caches
             Monitor.Exit(_dictionaryTemplates);
         }
 
-
+        /// <summary>
+        /// remove all cache
+        /// </summary>
         public void RemoveCache()
         {
             _dictionaryTemplates.Clear();

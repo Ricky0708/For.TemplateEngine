@@ -28,65 +28,46 @@ namespace For.TemplateParser
         }
 
         /// <summary>
-        /// 組合物件與範本
+        /// 組合範本
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="template"></param>
-        /// <param name="cacheKey"></param>
-        /// <returns></returns>
-        public string BuildTemplate<T>(T obj, string template, string cacheKey = null)
+        /// <param name="obj">inatance</param>
+        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <returns>template result</returns>
+        public string BuildTemplate<T>(T obj, string cacheKey = null)
         {
-            var n = _core.BuildTemplateInDelegate<T>(template, cacheKey ?? typeof(T).Name);
-            return n.Invoke(obj) as string;
+            var delg = _core.GetTemplateDelegate(cacheKey ?? typeof(T).FullName);
+            if (delg is null)
+            {
+                throw new Exception($"can't find any registed template by {cacheKey}");
+            }
+            return delg.Invoke(obj) as string;
         }
 
-
         /// <summary>
-        /// Register template to cache and get the key
+        /// Register template,cache and get the key
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="template"></param>
-        /// <param name="cacheKey"></param>
-        /// <returns></returns>
+        /// <param name="template">inatance</param>
+        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <returns>cache key</returns>
         public string RegisterTemplate<T>(string template, string cacheKey = null)
         {
-            var key = cacheKey ?? typeof(T).Name;
-            _core.RegisterTemplate<T>(template, key);
+            return RegisterTemplate(typeof(T), template, cacheKey);
+        }
+
+        /// <summary>
+        /// Register template, cache and get the key
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="template">inatance</param>
+        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <returns>cache key</returns>
+        public string RegisterTemplate(Type type, string template, string cacheKey = null)
+        {
+            var key = cacheKey ?? type.FullName;
+            _core.RegisterTemplate(type, template, key);
             return key;
-        }
-
-        [Obsolete("舊的方式，不再使用")]
-        public string BuildTemplateInQue<T>(T obj, string template)
-        {
-            var n = _core.BuildTemplateInQue(typeof(T), template);
-            var templateQue = new Queue<NodeModel>(n);
-            var sb = new StringBuilder();
-            {
-                var item = templateQue.Dequeue();
-                sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
-            }
-            return sb.ToString();
-        }
-
-     
-        /// <summary>
-        /// 組合物件與範本
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        public string BuildTemplate<T>(T obj, Func<T, string> func)
-        {
-            return func(obj);
-        }
-        /// <summary>
-        /// 清除所有快取
-        /// </summary>
-        public void ClearCaches()
-        {
-            _core.ClearCache();
         }
     }
 }
