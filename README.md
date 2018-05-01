@@ -10,6 +10,18 @@
 ```csharp
             var template = "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
 ```
+* 宣告掃描器
+```csharp
+            var provider = new TemplateParser(new For.TemplateParser.Models.TemplateParserConfig()
+            {
+                DateTimeFormat = "yyyyMMdd",
+                DateTimeOffsetFormat = "yyyy/MM/dd"
+            });
+```
+* 註冊範本與模型
+```csharp
+            provider.RegisterTemplate<TestModel>(template);
+```
 * 建立範本使用的模型
 ```csharp
             var obj = new TestModel()
@@ -34,20 +46,15 @@
                 }
             };
 ```
-* 宣告掃描器
-```csharp
-            var provider = new TemplateParser(new For.TemplateParser.Models.TemplateParserConfig()
-            {
-                DateTimeFormat = "yyyyMMdd",
-                DateTimeOffsetFormat = "yyyy/MM/dd"
-            });
 
-```
 * 執行並取得結果
 ```csharp
-            var resultA = provider.BuildTemplate(obj, template);
+            var resultA = provider.BuildTemplate(obj);
 ```
 
 # 更新紀錄
+* V1.1.0
+    * 注冊與執行，分開使用
+    
 * V1.0.0 Preview
     * 初版，目前將建立cache、取得結果做為同一個程式，未來將打算以單一職責抽離(真的就打算而已)
