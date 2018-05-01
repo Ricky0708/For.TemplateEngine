@@ -87,6 +87,8 @@ namespace ConsoleTest
                 obj.Age += 1;
             }
             watch.Stop();
+
+            Console.WriteLine(provider.BuildTemplate(obj, template));
             Console.WriteLine(watch.ElapsedMilliseconds);
 
             //var resultB = TemplateParser.BuildTemplate(obj, p => $"Hi! {p.Name}, your age is {p.Age}, {p.StandardDateTime}, {p.OffsetDateTime}");
