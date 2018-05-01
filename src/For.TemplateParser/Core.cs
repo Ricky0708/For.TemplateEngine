@@ -33,10 +33,9 @@ namespace For.TemplateParser
             _templateParserConfig = templateParserConfig;
         }
 
-        internal delgGetProperty BuildTemplateInDelegate<T>(string template, string cacheKey = null)
+        internal delgGetProperty BuildTemplateInDelegate<T>(string template, string cacheKey)
         {
             var type = typeof(T);
-            cacheKey = cacheKey ?? typeof(T).ToString();
             if (!_templateCache.IsExist(cacheKey))
             {
                 _templateCache.Lock();
@@ -50,16 +49,15 @@ namespace For.TemplateParser
             var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
             if (result is null)
             {
-                result = BuildTemplateInDelegate<T>(template);
+                result = BuildTemplateInDelegate<T>(template, cacheKey);
 
             }
             return result;
 
         }
-        internal delgGetProperty ReBuildTemplateInDelegate<T>(string template, string cacheKey = null)
+        internal delgGetProperty ReBuildTemplateInDelegate<T>(string template, string cacheKey)
         {
             var type = typeof(T);
-            cacheKey = cacheKey ?? typeof(T).ToString();
             if (_templateCache.IsExist(cacheKey))
             {
                 _templateCache.Lock();
@@ -94,7 +92,6 @@ namespace For.TemplateParser
             _templateCache.Unlock();
         }
 
-
         private delgGetProperty _BuildTemplateInDelegate(Type type, string template)
         {
             var forPropertyArray = _regexProperty.Split(template);
@@ -105,19 +102,19 @@ namespace For.TemplateParser
                     ? _BuildGetPropertyExpr(memberExp, item.Replace("{.", "").Replace("}", "").Split('.'))
                     : _BuildConstExpr(item))
                 .ToList();
+
             var parametersExpression = Expression.NewArrayInit(typeof(object), exprList);
+
             var methodExp = Expression.Call(method, parametersExpression);
             var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExp, targetExp);
             var lambda = lambdaExpr.Compile();
             return lambda;
         }
-
         private Expression _BuildGetPropertyExpr(Expression targetExp, params string[] props)
         {
             var memberExp = props.Aggregate(targetExp, Expression.Property);
             return _GetToStringExpression(memberExp);
         }
-
         private Expression _GetToStringExpression(Expression memberExp)
         {
             var propType = ((PropertyInfo)(memberExp as MemberExpression).Member).PropertyType;
@@ -128,14 +125,14 @@ namespace For.TemplateParser
                     if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
                     {
                         method = propType.GetMethod("ToString", new[] { typeof(string) });
-                        return Expression.Call(memberExp, method, Expression.Constant(_templateParserConfig.DateTimeOffsetFormat));
+                        return Expression.Call(memberExp, method, _BuildConstExpr(_templateParserConfig.DateTimeOffsetFormat));
                     }
                     break;
                 case "datetime":
                     if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
                     {
                         method = propType.GetMethod("ToString", new[] { typeof(string) });
-                        return Expression.Call(memberExp, method, Expression.Constant(_templateParserConfig.DateTimeFormat));
+                        return Expression.Call(memberExp, method, _BuildConstExpr(_templateParserConfig.DateTimeFormat));
                     }
                     break;
             }

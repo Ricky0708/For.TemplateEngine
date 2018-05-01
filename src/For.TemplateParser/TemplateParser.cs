@@ -26,18 +26,21 @@ namespace For.TemplateParser
             if (config == null) config = new TemplateParserConfig();
             _core = new Core(cache, config);
         }
+
         /// <summary>
         /// 組合物件與範本
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <param name="template"></param>
+        /// <param name="cacheKey"></param>
         /// <returns></returns>
-        public string BuildTemplate<T>(T obj, string template)
+        public string BuildTemplate<T>(T obj, string template, string cacheKey = null)
         {
-            var n = _core.BuildTemplateInDelegate<T>(template);
+            var n = _core.BuildTemplateInDelegate<T>(template, cacheKey ?? typeof(T).Name);
             return n.Invoke(obj) as string;
         }
+        [Obsolete("舊的方式，不再使用")]
         public string BuildTemplateInQue<T>(T obj, string template)
         {
             var n = _core.BuildTemplateInQue(typeof(T), template);
