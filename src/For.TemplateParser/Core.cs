@@ -18,66 +18,74 @@ namespace For.TemplateParser
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
         private static Regex _regexProperty => new Regex(@"({\..*?})");
-        private static Regex _regexList => new Regex(@"(\[\#.*?(\#])+)");
 
-        public Core()
+        private TemplateParserConfig _templateParserConfig;
+        //private static Regex _regexList => new Regex(@"(\[\#.*?(\#])+)");
+
+        internal Core(TemplateParserConfig templateParserConfig)
         {
             _templateCache = new DefaultTemplateCacheProvider();
+            _templateParserConfig = templateParserConfig;
         }
-        public Core(ITemplateCacheProvider templateCache)
+        internal Core(ITemplateCacheProvider templateCache, TemplateParserConfig templateParserConfig)
         {
             _templateCache = templateCache;
+            _templateParserConfig = templateParserConfig;
         }
 
-        /// <summary>
-        /// 建立範本的委派及cache
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="template"></param>
-        /// <returns></returns>
-        internal Queue<NodeModel> BuildTemplate(Type type, string template)
+        internal delgGetProperty BuildTemplateInDelegate<T>(string template, string cacheKey = null)
         {
-
-            if (!_templateCache.IsExist(template))
+            var type = typeof(T);
+            cacheKey = cacheKey ?? typeof(T).ToString();
+            if (!_templateCache.IsExist(cacheKey))
             {
                 _templateCache.Lock();
-                if (!_templateCache.IsExist(template))
+                if (!_templateCache.IsExist(cacheKey))
                 {
-                    _templateCache.Add(template, _BuildTemplate(type, template));
+                    _templateCache.Add(cacheKey, _BuildTemplateInDelegate(type, template));
                 }
                 _templateCache.Unlock();
             }
 
-            var result = _templateCache.GetValue(template) as Queue<NodeModel>;
+            var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
             if (result is null)
             {
-                result = BuildTemplate(type, template);
+                result = BuildTemplateInDelegate<T>(template);
 
             }
             return result;
+
         }
-
-        internal delgGetProperty BuildTemplate2(Type type, string template)
+        internal delgGetProperty ReBuildTemplateInDelegate<T>(string template, string cacheKey = null)
         {
-
-            if (!_templateCache.IsExist(type.ToString()))
+            var type = typeof(T);
+            cacheKey = cacheKey ?? typeof(T).ToString();
+            if (_templateCache.IsExist(cacheKey))
             {
                 _templateCache.Lock();
-                if (!_templateCache.IsExist(type.ToString()))
+                if (_templateCache.IsExist(cacheKey))
                 {
-                    _templateCache.Add(type.ToString(), _BuildTemplate2(type, template));
+                    _templateCache.Reset(cacheKey, _BuildTemplateInDelegate(type, template));
+                }
+                else
+                {
+                    BuildTemplateInDelegate<T>(template, cacheKey);
                 }
                 _templateCache.Unlock();
             }
+            else
+            {
+                BuildTemplateInDelegate<T>(template, cacheKey);
+            }
 
-            var result = _templateCache.GetValue(type.ToString()) as delgGetProperty;
+            var result = _templateCache.GetValue(cacheKey) as delgGetProperty;
             if (result is null)
             {
-                result = BuildTemplate2(type, template);
-
+                result = BuildTemplateInDelegate<T>(template, cacheKey);
             }
             return result;
         }
+
 
         internal void ClearCache()
         {
@@ -86,11 +94,91 @@ namespace For.TemplateParser
             _templateCache.Unlock();
         }
 
-        [Obsolete("舊的方式，不再使用")]
-        private static Queue<NodeModel> _BuildTemplate(Type type, string template)
+
+        private delgGetProperty _BuildTemplateInDelegate(Type type, string template)
         {
             var forPropertyArray = _regexProperty.Split(template);
-            var forListArray = _regexList.Split(template);
+            var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
+            var targetExp = Expression.Parameter(typeof(object), "target");
+            var memberExp = Expression.Convert(targetExp, type);
+            var exprList = forPropertyArray.Select(item => item.StartsWith("{.")
+                    ? _BuildGetPropertyExpr(memberExp, item.Replace("{.", "").Replace("}", "").Split('.'))
+                    : _BuildConstExpr(item))
+                .ToList();
+            var parametersExpression = Expression.NewArrayInit(typeof(object), exprList);
+            var methodExp = Expression.Call(method, parametersExpression);
+            var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExp, targetExp);
+            var lambda = lambdaExpr.Compile();
+            return lambda;
+        }
+
+        private Expression _BuildGetPropertyExpr(Expression targetExp, params string[] props)
+        {
+            var memberExp = props.Aggregate(targetExp, Expression.Property);
+            return _GetToStringExpression(memberExp);
+        }
+
+        private Expression _GetToStringExpression(Expression memberExp)
+        {
+            var propType = ((PropertyInfo)(memberExp as MemberExpression).Member).PropertyType;
+            MethodInfo method;
+            switch (propType.Name.ToLower())
+            {
+                case "datetimeoffset":
+                    if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
+                    {
+                        method = propType.GetMethod("ToString", new[] { typeof(string) });
+                        return Expression.Call(memberExp, method, Expression.Constant(_templateParserConfig.DateTimeOffsetFormat));
+                    }
+                    break;
+                case "datetime":
+                    if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
+                    {
+                        method = propType.GetMethod("ToString", new[] { typeof(string) });
+                        return Expression.Call(memberExp, method, Expression.Constant(_templateParserConfig.DateTimeFormat));
+                    }
+                    break;
+            }
+            return Expression.Convert(memberExp, typeof(object));
+        }
+        private static Expression _BuildConstExpr(string value)
+        {
+            return Expression.Constant(value);
+        }
+
+        /// <summary>
+        /// 建立範本的委派及cache
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        [Obsolete("舊的方式，不再使用")]
+        internal Queue<NodeModel> BuildTemplateInQue(Type type, string template)
+        {
+
+            if (!_templateCache.IsExist(template))
+            {
+                _templateCache.Lock();
+                if (!_templateCache.IsExist(template))
+                {
+                    _templateCache.Add(template, _BuildTemplateInQue(type, template));
+                }
+                _templateCache.Unlock();
+            }
+
+            var result = _templateCache.GetValue(template) as Queue<NodeModel>;
+            if (result is null)
+            {
+                result = BuildTemplateInQue(type, template);
+
+            }
+            return result;
+        }
+        [Obsolete("舊的方式，不再使用")]
+        private static Queue<NodeModel> _BuildTemplateInQue(Type type, string template)
+        {
+            var forPropertyArray = _regexProperty.Split(template);
+            //var forListArray = _regexList.Split(template);
             var que = new Queue<NodeModel>();
             foreach (var item in forPropertyArray)
             {
@@ -113,76 +201,17 @@ namespace For.TemplateParser
             }
             return que;
         }
-
-        private static delgGetProperty _BuildTemplate2(Type type, string template)
-        {
-            var forPropertyArray = _regexProperty.Split(template);
-            MethodInfo method = typeof(string).GetMethod("Concat", new Type[] { typeof(object[]) });
-            ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
-            var memberExp = Expression.Convert(targetExp, type);
-            List<Expression> exprList = new List<Expression>();
-            foreach (var item in forPropertyArray)
-            {
-                if (item.StartsWith("{."))
-                {
-                    exprList.Add(_BuildGetPropertyExpr(memberExp, item.Replace("{.", "").Replace("}", "").Split('.')));
-                }
-                else
-                {
-                    exprList.Add(_BuildConstExpr(item));
-                }
-            }
-            var parametersExpression = Expression.NewArrayInit(typeof(object), exprList);
-            MethodCallExpression methodExp = Expression.Call(method, parametersExpression);
-            var l = Expression.Lambda<delgGetProperty>(methodExp, targetExp);
-            var ll = l.Compile() as delgGetProperty;
-            //ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
-            //MethodInfo method = typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object) });
-            //Expression memberExp = Expression.Convert(targetExp, typeof(TModel));
-            //Expression memberExp2 = Expression.Property(memberExp, "Name");
-            //Expression constExpr = Expression.Constant("AA");
-            //var temp = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(memberExp2, typeof(object)), targetExp);
-            //var lambdaExp = temp.Compile();
-            //MethodCallExpression methodExp = Expression.Call(method, constExpr, memberExp2);
-            //var l = Expression.Lambda(methodExp, targetExp);
-            //var ll = l.Compile();
-            //var s = ll.DynamicInvoke(new TModel(){ Name = "QQ" }); 
-            return ll;
-        }
-        private class TModel
-        {
-            public string Name { get; set; }
-        }
+        [Obsolete("舊的方式，不再使用")]
         private static delgGetProperty _BuildGetPropertyMethod(Type type, params string[] props)
         {
             delgGetProperty dlgResult = null;
-            ParameterExpression targetExp = Expression.Parameter(typeof(object), "target");
+            var targetExp = Expression.Parameter(typeof(object), "target");
             Expression memberExp = Expression.Convert(targetExp, type);
-            LambdaExpression lambdaExp;
 
-            for (int i = 0; i < props.Length; i++)
-            {
-                memberExp = Expression.Property(memberExp, props[i]);
-            }
-            lambdaExp = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(memberExp, typeof(object)), targetExp);
+            memberExp = props.Aggregate(memberExp, Expression.Property);
+            var lambdaExp = Expression.Lambda(typeof(delgGetProperty), Expression.Convert(memberExp, typeof(object)), targetExp);
             dlgResult = (delgGetProperty)lambdaExp.Compile();
             return dlgResult;
         }
-        private static Expression _BuildGetPropertyExpr(Expression targetExp, params string[] props)
-        {
-            Expression memberExp = targetExp;
-
-            for (int i = 0; i < props.Length; i++)
-            {
-                memberExp = Expression.Property(memberExp, props[i]);
-            }
-
-            return Expression.Convert(memberExp, typeof(object));
-        }
-        private static Expression _BuildConstExpr(string value)
-        {
-            return Expression.Constant(value);
-        }
-
     }
 }

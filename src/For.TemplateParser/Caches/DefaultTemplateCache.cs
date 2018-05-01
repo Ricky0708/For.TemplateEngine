@@ -8,6 +8,7 @@ namespace For.TemplateParser.Caches
         bool IsExist(string key);
         object GetValue(string key);
         void Add(string key, object value);
+        void Reset(string key, object value);
         void Lock();
         void Unlock();
         void RemoveCache();
@@ -51,6 +52,11 @@ namespace For.TemplateParser.Caches
         public void Add(string key, object value)
         {
             _dictionaryTemplates.Add(key, value);
+        }
+
+        public void Reset(string key, object value)
+        {
+            _dictionaryTemplates[key] = value;
         }
 
         /// <summary>

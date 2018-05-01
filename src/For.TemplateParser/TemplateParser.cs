@@ -15,14 +15,16 @@ namespace For.TemplateParser
     public class TemplateParser
     {
         private readonly Core _core;
-        public TemplateParser()
+        public TemplateParser(TemplateParserConfig config = null)
         {
-            _core = new Core();
+            if (config == null) config = new TemplateParserConfig();
+            _core = new Core(config);
         }
 
-        public TemplateParser(ITemplateCacheProvider cache)
+        public TemplateParser(ITemplateCacheProvider cache, TemplateParserConfig config = null)
         {
-            _core = new Core(cache);
+            if (config == null) config = new TemplateParserConfig();
+            _core = new Core(cache, config);
         }
         /// <summary>
         /// 組合物件與範本
@@ -33,18 +35,20 @@ namespace For.TemplateParser
         /// <returns></returns>
         public string BuildTemplate<T>(T obj, string template)
         {
-            var n = _core.BuildTemplate2(typeof(T), template);
-            //var templateQue = new Queue<NodeModel>(n);
-            //var sb = new StringBuilder();
-            //while (templateQue.Count > 0)
-            //{
-            //    var item = templateQue.Dequeue();
-            //    sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
-            //}
-            //return sb.ToString();
+            var n = _core.BuildTemplateInDelegate<T>(template);
             return n.Invoke(obj) as string;
         }
-
+        public string BuildTemplateInQue<T>(T obj, string template)
+        {
+            var n = _core.BuildTemplateInQue(typeof(T), template);
+            var templateQue = new Queue<NodeModel>(n);
+            var sb = new StringBuilder();
+            {
+                var item = templateQue.Dequeue();
+                sb.Append(item.Type == NodeType.String ? item.NodeStringValue : item.NodeDelegateValue(obj));
+            }
+            return sb.ToString();
+        }
         /// <summary>
         /// 組合物件與範本
         /// </summary>

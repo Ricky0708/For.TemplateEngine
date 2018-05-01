@@ -16,7 +16,11 @@ namespace UnitTest
         public void Config()
         {
             template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
-            provider = new TemplateParser();
+            provider = new TemplateParser(new For.TemplateParser.Models.TemplateParserConfig()
+            {
+                DateTimeFormat = "yyyyMMdd",
+                DateTimeOffsetFormat = "yyyy/MM/dd"
+            });
             model = new TestModel()
             {
                 Name = "Ricky",
@@ -51,7 +55,7 @@ namespace UnitTest
             resultA = provider.BuildTemplate(model, template);
             Assert.AreEqual(
                 resultA,
-                "Hi! Ricky, your age is 25, 8/1/2017 12:00:00 AM, 8/2/2017 12:00:00 AM +08:00");
+                "Hi! Ricky, your age is 25, 20170801, 2017/08/02");
         }
     }
     public class TestModel
