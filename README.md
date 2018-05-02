@@ -54,7 +54,7 @@
 
 # 更新紀錄
 * v1.1.1
-    * 轉為 .net standard 專案，目前僅相容於.net framework
+    * 轉為 .net standard 專案，目前僅相容於.net framework
 * V1.1.0
     * 注冊與執行，分開使用
     
