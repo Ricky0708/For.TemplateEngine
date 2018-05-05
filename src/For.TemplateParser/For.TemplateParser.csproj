@@ -9,6 +9,7 @@
     <RepositoryUrl>https://github.com/Ricky0708/For.TemplateParser</RepositoryUrl>
     <PackageTags>replace string template by class model</PackageTags>
     <PackageReleaseNotes>transfer project to .net standard and only available with .net framewok</PackageReleaseNotes>
+    <DocumentationFile>bin\Debug\$(TargetFramework)\For.TemplateParser.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net40' OR '$(TargetFramework)'=='net45' OR '$(TargetFramework)'=='net46'">
    <Reference Include="System" />
