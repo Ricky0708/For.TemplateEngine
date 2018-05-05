@@ -57,22 +57,21 @@ namespace For.TemplateParser
         /// <summary>
         /// Register template,cache and get the key
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="template">inatance</param>
-        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <typeparam name="T">use in template's object type</typeparam>
+        /// <param name="template">template</param>
+        /// <param name="cacheKey">if is null, default will be typeof(T).FullName</param>
         /// <returns>cache key</returns>
         public string RegisterTemplate<T>(string template, string cacheKey = null)
         {
             return RegisterTemplate(typeof(T), template, cacheKey);
         }
 
-
         /// <summary>
         /// Register template, cache and get the key
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="template">inatance</param>
-        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <param name="type">use in template's object type</param>
+        /// <param name="template">template</param>
+        /// <param name="cacheKey">if is null, default will be typeof(T).FullName</param>
         /// <returns>cache key</returns>
         public string RegisterTemplate(Type type, string template, string cacheKey = null)
         {

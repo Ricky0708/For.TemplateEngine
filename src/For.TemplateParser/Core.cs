@@ -34,10 +34,10 @@ namespace For.TemplateParser
         /// <param name="cacheKey"></param>
         internal void RegisterTemplate(Type type, string template, string cacheKey)
         {
-            var count = 0;
-            while (true)
+            var recursiveCount = 0;
+            while (recursiveCount < 5)
             {
-                count += 1;
+                recursiveCount += 1;
                 _templateCache.Lock();
                 if (!_templateCache.IsExist(cacheKey))
                 {
@@ -53,13 +53,9 @@ namespace For.TemplateParser
                 {
                     continue;
                 }
-                System.Threading.Thread.Sleep(500);
-                if (count > 5)
-                {
-                    throw new Exception("Can't generate template");
-                }
-                break;
+                return;
             }
+            throw new Exception("Can't generate template");
         }
 
         /// <summary>
