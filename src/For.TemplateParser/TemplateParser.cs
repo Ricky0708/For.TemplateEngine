@@ -37,6 +37,27 @@ namespace For.TemplateParser
         }
 
         /// <summary>
+        /// 動態組合範本
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj">inatance</param>
+        /// <param name="template"></param>
+        /// <param name="cacheKey">default is typeof(T).FullName</param>
+        /// <returns>template result</returns>
+        public string DynamicBuildTemplate<T>(T obj, string template, string cacheKey = null)
+        {
+            var recursiveCount = 0;
+            while (recursiveCount < 5)
+            {
+                recursiveCount += 1;
+                var delg = _core.GetTemplateDelegate(cacheKey ?? typeof(T).FullName);
+                if (!(delg is null)) return delg.Invoke(obj) as string;
+                RegisterTemplate(typeof(T), template, cacheKey);
+            }
+            throw new Exception("Dynamic register error");
+        }
+
+        /// <summary>
         /// Register template,cache and get the key
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -47,6 +68,7 @@ namespace For.TemplateParser
         {
             return RegisterTemplate(typeof(T), template, cacheKey);
         }
+
 
         /// <summary>
         /// Register template, cache and get the key

@@ -59,6 +59,24 @@ namespace UnitTest
                 resultA,
                 "Hi! Ricky, your age is 25, 20170801, 2017/08/02");
         }
+
+        [TestMethod]
+        public void DynamciBuildTest()
+        {
+            Parallel.For(0, 10000, p =>
+            {
+                var result = provider.DynamicBuildTemplate(new
+                {
+                    Name = "Ricky",
+                    Age = 25,
+                    StandardDateTime = DateTime.Parse("2017/08/01"),
+                    OffsetDateTime = DateTimeOffset.Parse("2017/08/02")
+                }, template);
+                Assert.AreEqual(
+                    result,
+                    "Hi! Ricky, your age is 25, 20170801, 2017/08/02");
+            });
+        }
     }
     public class TestModel
     {
