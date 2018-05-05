@@ -7,14 +7,11 @@ namespace For.TemplateParser
     public class TemplateParser
     {
         private readonly Core _core;
-        public TemplateParser(TemplateParserConfig config = null)
-        {
-            if (config == null) config = new TemplateParserConfig();
-            _core = new Core(config);
-        }
+        public TemplateParser(TemplateParserConfig config = null) : this(null, config) { }
 
-        public TemplateParser(ITemplateCacheProvider cache, TemplateParserConfig config = null)
+        public TemplateParser(ITemplateCacheProvider cache, TemplateParserConfig config)
         {
+            if (cache == null) cache = new DefaultTemplateCacheProvider();
             if (config == null) config = new TemplateParserConfig();
             _core = new Core(cache, config);
         }

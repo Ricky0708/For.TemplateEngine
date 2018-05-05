@@ -20,11 +20,6 @@ namespace For.TemplateParser
         private static Regex _regexProperty => new Regex(@"({\..*?})");
         private readonly TemplateParserConfig _templateParserConfig;
 
-        internal Core(TemplateParserConfig templateParserConfig)
-        {
-            _templateCache = new DefaultTemplateCacheProvider();
-            _templateParserConfig = templateParserConfig;
-        }
         internal Core(ITemplateCacheProvider templateCache, TemplateParserConfig templateParserConfig)
         {
             _templateCache = templateCache;
