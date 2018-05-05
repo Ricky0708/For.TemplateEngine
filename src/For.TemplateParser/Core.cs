@@ -88,17 +88,17 @@ namespace For.TemplateParser
         {
             var forPropertyArray = _regexProperty.Split(template);
             var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
-            var targetExp = Expression.Parameter(typeof(object), "target");
-            var memberExp = Expression.Convert(targetExp, type);
+            var targetExpr = Expression.Parameter(typeof(object), "target");
+            var memberExpr = Expression.Convert(targetExpr, type);
             var exprList = forPropertyArray.Select(item => item.StartsWith("{.")
-                    ? _BuildGetPropertyExpr(memberExp, item.Replace("{.", "").Replace("}", "").Split('.'))
+                    ? _BuildGetPropertyExpr(memberExpr, item.Replace("{.", "").Replace("}", "").Split('.'))
                     : _BuildConstExpr(item))
                 .ToList();
 
-            var parametersExpression = Expression.NewArrayInit(typeof(object), exprList);
+            var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
 
-            var methodExp = Expression.Call(method, parametersExpression);
-            var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExp, targetExp);
+            var methodExpr = Expression.Call(method, paramsExpr);
+            var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExpr, targetExpr);
             var lambda = lambdaExpr.Compile();
             return lambda;
         }
@@ -106,13 +106,13 @@ namespace For.TemplateParser
         /// <summary>
         /// generate member expression
         /// </summary>
-        /// <param name="targetExp"></param>
+        /// <param name="targetExpr"></param>
         /// <param name="props"></param>
         /// <returns></returns>
-        private Expression _BuildGetPropertyExpr(Expression targetExp, params string[] props)
+        private Expression _BuildGetPropertyExpr(Expression targetExpr, params string[] props)
         {
-            var memberExp = props.Aggregate(targetExp, Expression.Property);
-            return _BuildToStringExpression(memberExp);
+            var memberExpr = props.Aggregate(targetExpr, Expression.Property);
+            return _BuildToStringExpression(memberExpr);
         }
 
         /// <summary>
