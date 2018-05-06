@@ -49,7 +49,7 @@
 
 * 執行並取得結果
 ```csharp
-            var resultA = provider.BuildTemplate(obj);
+            var resultA = provider.Render(obj);
 ```
 
 # 更新紀錄
