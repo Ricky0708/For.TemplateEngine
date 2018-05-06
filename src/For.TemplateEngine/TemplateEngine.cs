@@ -32,7 +32,7 @@ namespace For.TemplateEngine
         /// 組合範本
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="obj">inatance</param>
+        /// <param name="obj">instance</param>
         /// <param name="cacheKey">default is typeof(T).FullName</param>
         /// <returns>template result</returns>
         public string Render<T>(T obj, string cacheKey = null)
@@ -49,7 +49,7 @@ namespace For.TemplateEngine
         /// 動態組合範本
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="obj">inatance</param>
+        /// <param name="obj">instance</param>
         /// <param name="template"></param>
         /// <param name="cacheKey">default is typeof(T).FullName</param>
         /// <returns>template result</returns>
