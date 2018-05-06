@@ -7,8 +7,17 @@ namespace For.TemplateParser
     public class TemplateParser
     {
         private readonly Core _core;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
         public TemplateParser(TemplateParserConfig config = null) : this(null, config) { }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cache"></param>
+        /// <param name="config"></param>
         public TemplateParser(ITemplateCacheProvider cache, TemplateParserConfig config)
         {
             if (cache == null) cache = new DefaultTemplateCacheProvider();
@@ -23,7 +32,7 @@ namespace For.TemplateParser
         /// <param name="obj">inatance</param>
         /// <param name="cacheKey">default is typeof(T).FullName</param>
         /// <returns>template result</returns>
-        public string BuildTemplate<T>(T obj, string cacheKey = null)
+        public string Render<T>(T obj, string cacheKey = null)
         {
             var delg = _core.GetTemplateDelegate(cacheKey ?? typeof(T).FullName);
             if (delg is null)
@@ -41,7 +50,7 @@ namespace For.TemplateParser
         /// <param name="template"></param>
         /// <param name="cacheKey">default is typeof(T).FullName</param>
         /// <returns>template result</returns>
-        public string DynamicBuildTemplate<T>(T obj, string template, string cacheKey = null)
+        public string DynamicRender<T>(T obj, string template, string cacheKey = null)
         {
             var recursiveCount = 0;
             while (recursiveCount < 5)

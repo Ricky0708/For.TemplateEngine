@@ -38,7 +38,7 @@ namespace UnitTest
             provider.RegisterTemplate<TestModel>(template);
             Parallel.For(0, 1000000, p =>
             {
-                resultA = provider.BuildTemplate(model);
+                resultA = provider.Render(model);
                 //TemplateParser.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {
@@ -54,7 +54,7 @@ namespace UnitTest
         {
             string resultA = "";
             provider.RegisterTemplate<TestModel>(template);
-            resultA = provider.BuildTemplate(model);
+            resultA = provider.Render(model);
             Assert.AreEqual(
                 resultA,
                 "Hi! Ricky, your age is 25, 20170801, 2017/08/02");
@@ -65,7 +65,7 @@ namespace UnitTest
         {
             Parallel.For(0, 10000, p =>
             {
-                var result = provider.DynamicBuildTemplate(new
+                var result = provider.DynamicRender(new
                 {
                     Name = "Ricky",
                     Age = 25,

@@ -50,7 +50,7 @@ namespace ConsoleTest
             watch.Start();
             Parallel.For((long)0, 10000, p =>
             {
-                var resultA = provider.BuildTemplate(obj, typeof(TestModel).FullName);
+                var resultA = provider.Render(obj, typeof(TestModel).FullName);
                 if (!resultA.StartsWith("Hi!"))
                 {
                     throw new Exception();
@@ -64,11 +64,11 @@ namespace ConsoleTest
             watch.Start();
             for (var i = 0; i < 1000000; i++)
             {
-                var resultA = provider.BuildTemplate(obj);
+                var resultA = provider.Render(obj);
                 obj.Age += 1;
             }
             watch.Stop();
-            Console.WriteLine(provider.BuildTemplate(obj));
+            Console.WriteLine(provider.Render(obj));
             Console.WriteLine(watch.ElapsedMilliseconds);
 
          
