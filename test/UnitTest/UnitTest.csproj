@@ -56,9 +56,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\For.TemplateParser\For.TemplateParser.csproj">
+    <ProjectReference Include="..\..\src\For.TemplateEngine\For.TemplateEngine.csproj">
       <Project>{0ed85a4c-3eb8-426e-971b-c106188691fb}</Project>
-      <Name>For.TemplateParser</Name>
+      <Name>For.TemplateEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

@@ -1,27 +1,30 @@
 ﻿using System;
-using For.TemplateParser.Caches;
-using For.TemplateParser.Models;
+using For.TemplateEngine.Caches;
+using For.TemplateEngine.Models;
 
-namespace For.TemplateParser
+namespace For.TemplateEngine
 {
-    public class TemplateParser
+    /// <summary>
+    /// 
+    /// </summary>
+    public class TemplateEngine
     {
         private readonly Core _core;
         /// <summary>
         /// 
         /// </summary>
         /// <param name="config"></param>
-        public TemplateParser(TemplateParserConfig config = null) : this(null, config) { }
+        public TemplateEngine(TemplateEngineConfig config = null) : this(null, config) { }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="cache"></param>
         /// <param name="config"></param>
-        public TemplateParser(ITemplateCacheProvider cache, TemplateParserConfig config)
+        public TemplateEngine(ITemplateCacheProvider cache, TemplateEngineConfig config)
         {
             if (cache == null) cache = new DefaultTemplateCacheProvider();
-            if (config == null) config = new TemplateParserConfig();
+            if (config == null) config = new TemplateEngineConfig();
             _core = new Core(cache, config);
         }
 

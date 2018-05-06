@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using For.TemplateParser;
+using For.TemplateEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTest
@@ -10,13 +10,13 @@ namespace UnitTest
     public class UnitTest1
     {
         private string template = "";
-        private TemplateParser provider;
+        private TemplateEngine provider;
         private TestModel model;
         [TestInitialize]
         public void Config()
         {
             template = "Hi! {.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
-            provider = new TemplateParser(new For.TemplateParser.Models.TemplateParserConfig()
+            provider = new TemplateEngine(new For.TemplateEngine.Models.TemplateEngineConfig()
             {
                 DateTimeFormat = "yyyyMMdd",
                 DateTimeOffsetFormat = "yyyy/MM/dd"
@@ -39,7 +39,7 @@ namespace UnitTest
             Parallel.For(0, 1000000, p =>
             {
                 resultA = provider.Render(model);
-                //TemplateParser.ClearCaches();
+                //TemplateEngine.ClearCaches();
                 if (!resultA.StartsWith("Hi!"))
                 {
                     throw new Exception();

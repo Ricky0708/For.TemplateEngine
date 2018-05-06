@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27428.2011
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "test\ConsoleTest\ConsoleTest.csproj", "{CB724C38-FA0A-49D1-9AD0-4B6A74FC4F20}"
 EndProject
@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{BA42375F-C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "test\UnitTest\UnitTest.csproj", "{426C6786-F3B3-4F92-8F20-8A284D0485F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "For.TemplateParser", "src\For.TemplateParser\For.TemplateParser.csproj", "{0ED85A4C-3EB8-426E-971B-C106188691FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "For.TemplateEngine", "src\For.TemplateEngine\For.TemplateEngine.csproj", "{0ED85A4C-3EB8-426E-971B-C106188691FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

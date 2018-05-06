@@ -50,9 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\For.TemplateParser\For.TemplateParser.csproj">
+    <ProjectReference Include="..\..\src\For.TemplateEngine\For.TemplateEngine.csproj">
       <Project>{0ed85a4c-3eb8-426e-971b-c106188691fb}</Project>
-      <Name>For.TemplateParser</Name>
+      <Name>For.TemplateEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
-namespace For.TemplateParser.Caches
+namespace For.TemplateEngine.Caches
 {
     public interface ITemplateCacheProvider
     {

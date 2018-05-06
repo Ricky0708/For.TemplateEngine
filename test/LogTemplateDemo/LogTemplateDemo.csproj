@@ -215,9 +215,9 @@
     <Content Include="Scripts\jquery-1.10.2.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\For.TemplateParser\For.TemplateParser.csproj">
+    <ProjectReference Include="..\..\src\For.TemplateEngine\For.TemplateEngine.csproj">
       <Project>{0ed85a4c-3eb8-426e-971b-c106188691fb}</Project>
-      <Name>For.TemplateParser</Name>
+      <Name>For.TemplateEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

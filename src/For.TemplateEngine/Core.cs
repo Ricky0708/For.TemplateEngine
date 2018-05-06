@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using For.TemplateParser.Caches;
-using For.TemplateParser.Models;
+using For.TemplateEngine.Caches;
+using For.TemplateEngine.Models;
 
-namespace For.TemplateParser
+namespace For.TemplateEngine
 {
     internal class Core
     {
@@ -18,12 +17,12 @@ namespace For.TemplateParser
         /// 由範本中抽取特殊標記的pattern
         /// </summary>
         private static Regex _regexProperty => new Regex(@"({\..*?})");
-        private readonly TemplateParserConfig _templateParserConfig;
+        private readonly TemplateEngineConfig _config;
 
-        internal Core(ITemplateCacheProvider templateCache, TemplateParserConfig templateParserConfig)
+        internal Core(ITemplateCacheProvider templateCache, TemplateEngineConfig config)
         {
             _templateCache = templateCache;
-            _templateParserConfig = templateParserConfig;
+            _config = config;
         }
 
         /// <summary>
@@ -118,17 +117,17 @@ namespace For.TemplateParser
             switch (propType.Name.ToLower())
             {
                 case "datetimeoffset":
-                    if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
+                    if (!string.IsNullOrEmpty(_config.DateTimeOffsetFormat))
                     {
                         method = propType.GetMethod("ToString", new[] { typeof(string) });
-                        return Expression.Call(memberExp, method, _BuildConstExpr(_templateParserConfig.DateTimeOffsetFormat));
+                        return Expression.Call(memberExp, method, _BuildConstExpr(_config.DateTimeOffsetFormat));
                     }
                     break;
                 case "datetime":
-                    if (!string.IsNullOrEmpty(_templateParserConfig.DateTimeOffsetFormat))
+                    if (!string.IsNullOrEmpty(_config.DateTimeOffsetFormat))
                     {
                         method = propType.GetMethod("ToString", new[] { typeof(string) });
-                        return Expression.Call(memberExp, method, _BuildConstExpr(_templateParserConfig.DateTimeFormat));
+                        return Expression.Call(memberExp, method, _BuildConstExpr(_config.DateTimeFormat));
                     }
                     break;
             }

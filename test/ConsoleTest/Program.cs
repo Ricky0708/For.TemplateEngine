@@ -1,5 +1,4 @@
-﻿using For.TemplateParser;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using For.TemplateEngine;
 
 namespace ConsoleTest
 {
@@ -18,7 +18,7 @@ namespace ConsoleTest
             var template = "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             template += "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
             template += "Hi! {.Name}, your father name is {.Details.Father.Name}{.Details.Mother.Name}, your age is {.Age}, {.StandardDateTime}, {.OffsetDateTime}";
-            var provider = new TemplateParser(new For.TemplateParser.Models.TemplateParserConfig()
+            var provider = new TemplateEngine(new For.TemplateEngine.Models.TemplateEngineConfig()
             {
                 DateTimeFormat = "yyyyMMdd",
                 DateTimeOffsetFormat = "yyyy/MM/dd"
