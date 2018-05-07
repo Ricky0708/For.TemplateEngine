@@ -46,34 +46,104 @@ namespace ConsoleTest
                 }
             };
 
+            Action parallerRender = () =>
+            {
+                Parallel.For((long)0, 1000000, p =>
+                {
+                    var resultA = provider.Render(obj, typeof(TestModel).FullName);
+                    if (!resultA.StartsWith("Hi!"))
+                    {
+                        throw new Exception();
+                    }
+                    obj.Age += 1;
+                });
+            };
+            Action seqRender = () =>
+            {
+                for (var i = 0; i < 1000000; i++)
+                {
+                    var resultA = provider.Render(obj);
+                    obj.Age += 1;
+                }
+            };
+            Action dynamicParallerRender = () =>
+            {
+                Parallel.For((long)0, 1000000, p =>
+                {
+                    var resultA = provider.DynamicRender(new
+                    {
+                        Name = "Ricky",
+                        Age = 25,
+                        StandardDateTime = DateTime.Parse("2017/08/01"),
+                        OffsetDateTime = DateTimeOffset.Parse("2017/08/02"),
+                        Details = new Detail()
+                        {
+                            Id = 0,
+                            Mother = new Parent()
+                            {
+                                Name = "Mary",
+                                Age = 50
+                            },
+                            Father = new Parent()
+                            {
+                                Name = "Eric",
+                                Age = 51
+                            }
+                        }
+                    }, template, "dynamicParallerRender");
+                    if (!resultA.StartsWith("Hi!"))
+                    {
+                        throw new Exception();
+                    }
+                    obj.Age += 1;
+                });
+            };
+            Action dynamicSeqRender = () =>
+            {
+                for (var i = 0; i < 1000000; i++)
+                {
+                    var resultA = provider.DynamicRender(new
+                    {
+                        Name = "Ricky",
+                        Age = 25,
+                        StandardDateTime = DateTime.Parse("2017/08/01"),
+                        OffsetDateTime = DateTimeOffset.Parse("2017/08/02"),
+                        Details = new Detail()
+                        {
+                            Id = 0,
+                            Mother = new Parent()
+                            {
+                                Name = "Mary",
+                                Age = 50
+                            },
+                            Father = new Parent()
+                            {
+                                Name = "Eric",
+                                Age = 51
+                            }
+                        }
+                    }, template, "dynamicSeqRender");
+                    obj.Age += 1;
+                }
+            };
+
+            Watch("parallerRender", parallerRender);
+            Watch("seqRender", seqRender);
+            Watch("dynamicParallerRender", dynamicParallerRender);
+            Watch("dynamicSeqRender", dynamicSeqRender);
+            Console.WriteLine(provider.Render(obj));
+            Console.ReadLine();
+            Main(null);
+        }
+
+        static void Watch(string tag, Action p)
+        {
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            Parallel.For((long)0, 10000, p =>
-            {
-                var resultA = provider.Render(obj, typeof(TestModel).FullName);
-                if (!resultA.StartsWith("Hi!"))
-                {
-                    throw new Exception();
-                }
-                obj.Age += 1;
-            });
-
+            p.Invoke();
             watch.Stop();
-            Console.WriteLine(watch.ElapsedMilliseconds);
+            Console.WriteLine($"[{tag}] {watch.ElapsedMilliseconds}");
             watch.Reset();
-            watch.Start();
-            for (var i = 0; i < 1000000; i++)
-            {
-                var resultA = provider.Render(obj);
-                obj.Age += 1;
-            }
-            watch.Stop();
-            Console.WriteLine(provider.Render(obj));
-            Console.WriteLine(watch.ElapsedMilliseconds);
-
-         
-            Console.ReadLine();
-           
         }
     }
 }
