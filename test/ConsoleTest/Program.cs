@@ -18,7 +18,8 @@ namespace ConsoleTest
         {
             //TestA();
             //TestB();
-            TestC();
+            //TestC();
+            TestDForDemo();
         }
 
         static void TestA()
@@ -280,7 +281,7 @@ namespace ConsoleTest
                 Parallel.For((long)0, 1000000, p =>
                 {
                     //a = "Hi! {ProfileName}, 你的年紀是 {ProfileAge}, {ProfileStartDateTimeKey}, {ProfileEndDateTimeKey}, 你父母的名字是{Details.Father.Name}, {Details.Mother.Name}".ConvertToResult(dic, "zh");
-                    a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 20, AA = "AAA", BB = "BBB" });
+                    a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = "20", AA = "AAA", BB = "BBB", MyC = "CCC" });
                     //b = dic[sentenceKey + "_en"].ConvertToResult(dic, "en");
                 });
             };
@@ -315,7 +316,75 @@ namespace ConsoleTest
             Watch("parallerRenderB", parallerRenderB);
             Watch("parallerRenderC", parallerRenderC);
 
-            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 60, AA = "AAA", BB = "BBB" });
+            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
+            b = dic[sentenceKey + "_en"].ConvertToResult("en");
+
+            Console.Write("\r\n\r\n");
+            Console.Write(a);
+            Console.Write("\r\n\r\n");
+            Console.Write(b);
+            Console.ReadLine();
+        }
+
+        static void TestDForDemo()
+        {
+            #region Init dic
+
+            var sentenceKey = "sentenceKey";
+            var profileNameKey = "ProfileName";
+            var profileAgeKey = "ProfileAge";
+            var profileStartDateTimeKey = "ProfileStartDateTimeKey";
+            var profileEndDateTimeKey = "ProfileEndDateTimeKey";
+            var profileFatherNameKey = "Details.Father.Name";
+            var profileMotherNameKey = "Details.Mother.Name";
+
+            var dic = new Dictionary<string, string>();
+            dic.Add(sentenceKey + "_zh", "Hi! {ProfileName}, 你的年紀是 {#ProfileAge}, {ProfileStartDateTimeKey}, {ProfileEndDateTimeKey}, 你父母的名字是{Details.Father.Name}, {Details.Mother.Name}");
+            dic.Add(profileNameKey + "_zh", "{MyA}{MyB}");
+            dic.Add("MyA" + "_zh", "{#AA}");
+            dic.Add("MyB" + "_zh", "{MyA}{MyC}");
+            dic.Add("MyC" + "_zh", "{#MyC}");
+            dic.Add(profileAgeKey + "_zh", "20");
+            dic.Add(profileStartDateTimeKey + "_zh", "2023/05/31");
+            dic.Add(profileEndDateTimeKey + "_zh", "2023/06/01");
+            dic.Add(profileFatherNameKey + "_zh", "爸爸");
+            dic.Add(profileMotherNameKey + "_zh", "媽媽");
+            dic.Add(sentenceKey + "_en", "Hi! {ProfileName}, your father name is {Details.Father.Name}, {Details.Mother.Name}, your age is {ProfileAge}, {ProfileStartDateTimeKey}, {ProfileEndDateTimeKey}");
+            dic.Add(profileNameKey + "_en", "{MyA}{MyB}");
+            dic.Add("MyA" + "_en", "tYY");
+            dic.Add("MyB" + "_en", "{MyA}{MyC}");
+            dic.Add("MyC" + "_en", "SDFE");
+            dic.Add(profileAgeKey + "_en", "30");
+            dic.Add(profileStartDateTimeKey + "_en", "2023/06/02");
+            dic.Add(profileEndDateTimeKey + "_en", "2023/06/03");
+            dic.Add(profileFatherNameKey + "_en", "Father");
+            dic.Add(profileMotherNameKey + "_en", "Mother");
+            Extension.SetCache(dic);
+
+            #endregion
+
+            var a = "";
+            var b = "";
+
+            Action parallerRenderA = () =>
+            {
+                Parallel.For((long)0, 1000000, p =>
+                {
+                    a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = "20", AA = "AAA", BB = "BBB", MyC = "CCC" });
+                });
+            };
+            Action parallerRenderB = () =>
+            {
+                Parallel.For((long)0, 1000000, p =>
+                {
+                    a = dic[sentenceKey + "_en"].ConvertToResult("en");
+                });
+            };
+
+            Watch("parallerRenderA 有動態參數", parallerRenderA);
+            Watch("parallerRenderB 無動態參數", parallerRenderB);
+
+            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
             b = dic[sentenceKey + "_en"].ConvertToResult("en");
 
             Console.Write("\r\n\r\n");
@@ -340,53 +409,35 @@ namespace ConsoleTest
     {
 
         private static Dictionary<string, string> cache = new Dictionary<string, string>();
+        private static Dictionary<string, delgGetProperty> delgCache = new Dictionary<string, delgGetProperty>();
+
+        internal delegate string delgGetProperty(object instance);
+
 
         public static void SetCache(Dictionary<string, string> dic) => cache = dic;
 
         public static string ConvertToResult(this string str, string lang)
         {
-            var sb = new StringBuilder();
-            var start = false;
-            var key = new StringBuilder();
-            foreach (var chr in str)
-            {
-                if (chr == '{')
-                {
-                    start = true;
-                }
-                else if (chr == '}')
-                {
-                    sb.Append(cache[key + $"_{lang}"].ConvertToResult(lang));
-                    key.Clear();
-                    start = false;
-                }
-                else
-                {
-                    if (start)
-                    {
-                        key.Append(chr);
-                    }
-                    else
-                    {
-                        sb.Append(chr);
-                    }
-                }
-
-            }
-            return sb.ToString();
+            return str.ConvertToResultString(lang);
         }
 
         public static string ConvertToResult(this string str, string lang, object paramModel)
+        {
+            var resultString = ConvertToResultString(str, lang);
+            return ProcessParam(resultString, paramModel).Invoke(paramModel);
+        }
+
+        private static string ConvertToResultString(this string str, string lang)
         {
             var sb = new StringBuilder();
             var start = false;
             var isParam = false;
             var key = new StringBuilder();
-            if (!cache.TryGetValue(str, out var result))
+            if (!cache.TryGetValue(str + $"_{lang}", out var result))
             {
                 lock (cache)
                 {
-                    if (!cache.TryGetValue(str, out result))
+                    if (!cache.TryGetValue(str + $"_{lang}", out result))
                     {
                         foreach (var chr in str)
                         {
@@ -402,7 +453,7 @@ namespace ConsoleTest
                                 }
                                 else
                                 {
-                                    sb.Append(cache[key + $"_{lang}"].ConvertToResult(lang, paramModel));
+                                    sb.Append(cache[key + $"_{lang}"].ConvertToResultString(lang));
                                 }
                                 key.Clear();
                                 start = false;
@@ -425,16 +476,15 @@ namespace ConsoleTest
                             }
 
                         }
-
                         result = sb.ToString();
-                        cache.Add(str, result);
+                        cache.Add(str + $"_{lang}", result);
                     }
                 }
             }
 
             return result;
-            //return ProcessParam(result, paramModel);
         }
+
 
         private static Expression GenerateGetterLambda(PropertyInfo property)
         {
@@ -450,38 +500,61 @@ namespace ConsoleTest
             return Expression.Lambda<Func<object, object>>(propertyObjExpr, objParameterExpr);
         }
 
-        private static string ProcessParam(string str, object paramModel)
+        private static delgGetProperty ProcessParam(string str, object paramModel)
         {
-            var sb = new StringBuilder();
-            var start = false;
-            var key = new StringBuilder();
-
-            foreach (var chr in str)
+            if (!delgCache.TryGetValue(str, out var lambda))
             {
-                if (chr == '{')
+                lock (delgCache)
                 {
-                    start = true;
-                }
-                else if (chr == '}')
-                {
-                    var value = paramModel.GetType().GetProperty(key.ToString()).GetValue(paramModel);
-                    sb.Append(value);
-                    key.Clear();
-                    start = false;
-                }
-                else
-                {
-                    if (start)
+                    if (!delgCache.TryGetValue(str, out lambda))
                     {
-                        key.Append(chr);
-                    }
-                    else
-                    {
-                        sb.Append(chr);
+                        var sb = new StringBuilder();
+                        var start = false;
+                        var key = new StringBuilder();
+                        var exprList = new List<Expression>();
+                        var targetExpr = Expression.Parameter(typeof(object), "target");
+                        var memberExpr = Expression.Convert(targetExpr, paramModel.GetType());
+
+                        foreach (var chr in str)
+                        {
+                            if (chr == '{')
+                            {
+                                if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
+                                sb.Clear();
+                                start = true;
+                            }
+                            else if (chr == '}')
+                            {
+                                exprList.Add(Expression.Property(memberExpr, key.ToString()));
+                                key.Clear();
+                                sb.Clear();
+                                start = false;
+                            }
+                            else
+                            {
+                                if (start)
+                                {
+                                    key.Append(chr);
+                                }
+                                else
+                                {
+                                    sb.Append(chr);
+                                }
+                            }
+                        }
+                        if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
+
+                        var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
+                        var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
+                        var methodExpr = Expression.Call(method, paramsExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExpr, targetExpr);
+                        lambda = lambdaExpr.Compile();
+                        delgCache.Add(str, lambda);
                     }
                 }
             }
-            return sb.ToString();
+
+            return lambda;
         }
 
     }
