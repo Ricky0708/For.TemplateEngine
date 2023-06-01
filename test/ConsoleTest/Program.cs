@@ -312,7 +312,7 @@ namespace ConsoleTest
             Watch("parallerRenderB", parallerRenderB);
             Watch("parallerRenderC", parallerRenderC);
 
-            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 20 });
+            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 60 });
             b = dic[sentenceKey + "_en"].ConvertToResult("en");
 
             Console.Write("\r\n\r\n");
@@ -379,6 +379,80 @@ namespace ConsoleTest
             var start = false;
             var isParam = false;
             var key = new StringBuilder();
+            if (!cache.TryGetValue(str, out var result))
+            {
+                lock (cache)
+                {
+                    if (!cache.TryGetValue(str, out result))
+                    {
+                        foreach (var chr in str)
+                        {
+                            if (chr == '{')
+                            {
+                                start = true;
+                            }
+                            else if (chr == '}')
+                            {
+                                if (isParam)
+                                {
+                                    //var value = paramModel.GetType().GetProperty(key.ToString()).GetValue(paramModel);
+                                    sb.Append($"{{{key}}}");
+                                }
+                                else
+                                {
+                                    sb.Append(cache[key + $"_{lang}"].ConvertToResult(lang, paramModel));
+                                }
+                                key.Clear();
+                                start = false;
+                                isParam = false;
+                            }
+                            else if (start && chr == '#')
+                            {
+                                isParam = true;
+                            }
+                            else
+                            {
+                                if (start)
+                                {
+                                    key.Append(chr);
+                                }
+                                else
+                                {
+                                    sb.Append(chr);
+                                }
+                            }
+
+                        }
+
+                        result = sb.ToString();
+                        cache.Add(str, result);
+                    }
+                }
+            }
+
+            return ProcessParam(result, paramModel);
+        }
+
+        private static Expression GenerateGetterLambda(PropertyInfo property)
+        {
+            // Define our instance parameter, which will be the input of the Func
+            var objParameterExpr = Expression.Parameter(typeof(object), "instance");
+            // 1. Cast the instance to the correct type
+            var instanceExpr = Expression.TypeAs(objParameterExpr, property.DeclaringType);
+            // 2. Call the getter and retrieve the value of the property
+            var propertyExpr = Expression.Property(instanceExpr, property);
+            // 3. Convert the property's value to object
+            var propertyObjExpr = Expression.Convert(propertyExpr, typeof(object));
+            // Create a lambda expression of the latest call & compile it
+            return Expression.Lambda<Func<object, object>>(propertyObjExpr, objParameterExpr);
+        }
+
+        private static string ProcessParam(string str, object paramModel)
+        {
+            var sb = new StringBuilder();
+            var start = false;
+            var key = new StringBuilder();
+
             foreach (var chr in str)
             {
                 if (chr == '{')
@@ -387,22 +461,10 @@ namespace ConsoleTest
                 }
                 else if (chr == '}')
                 {
-                    if (isParam)
-                    {
-                        var value = paramModel.GetType().GetProperty(key.ToString()).GetValue(paramModel);
-                        sb.Append(value);
-                    }
-                    else
-                    {
-                        sb.Append(cache[key + $"_{lang}"].ConvertToResult(lang, paramModel));
-                    }
+                    var value = paramModel.GetType().GetProperty(key.ToString()).GetValue(paramModel);
+                    sb.Append(value);
                     key.Clear();
                     start = false;
-                    isParam = false;
-                }
-                else if (start && chr == '#')
-                {
-                    isParam = true;
                 }
                 else
                 {
@@ -415,9 +477,9 @@ namespace ConsoleTest
                         sb.Append(chr);
                     }
                 }
-
             }
             return sb.ToString();
         }
+
     }
 }
