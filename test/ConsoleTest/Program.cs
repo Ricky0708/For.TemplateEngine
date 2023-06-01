@@ -254,7 +254,10 @@ namespace ConsoleTest
 
             var dic = new Dictionary<string, string>();
             dic.Add(sentenceKey + "_zh", "Hi! {ProfileName}, 你的年紀是 {#ProfileAge}, {ProfileStartDateTimeKey}, {ProfileEndDateTimeKey}, 你父母的名字是{Details.Father.Name}, {Details.Mother.Name}");
-            dic.Add(profileNameKey + "_zh", "瑞奇");
+            dic.Add(profileNameKey + "_zh", "{MyA}{MyB}");
+            dic.Add("MyA_zh", "{#AA}");
+            dic.Add("MyB_zh", "{MyA}{MyC}");
+            dic.Add("MyC_zh", "{#MyC}");
             dic.Add(profileAgeKey + "_zh", "20");
             dic.Add(profileStartDateTimeKey + "_zh", "2023/05/31");
             dic.Add(profileEndDateTimeKey + "_zh", "2023/06/01");
@@ -277,7 +280,7 @@ namespace ConsoleTest
                 Parallel.For((long)0, 1000000, p =>
                 {
                     //a = "Hi! {ProfileName}, 你的年紀是 {ProfileAge}, {ProfileStartDateTimeKey}, {ProfileEndDateTimeKey}, 你父母的名字是{Details.Father.Name}, {Details.Mother.Name}".ConvertToResult(dic, "zh");
-                    a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 20 });
+                    a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 20, AA = "AAA", BB = "BBB" });
                     //b = dic[sentenceKey + "_en"].ConvertToResult(dic, "en");
                 });
             };
@@ -312,7 +315,7 @@ namespace ConsoleTest
             Watch("parallerRenderB", parallerRenderB);
             Watch("parallerRenderC", parallerRenderC);
 
-            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 60 });
+            a = dic[sentenceKey + "_zh"].ConvertToResult("zh", new { ProfileAge = 60, AA = "AAA", BB = "BBB" });
             b = dic[sentenceKey + "_en"].ConvertToResult("en");
 
             Console.Write("\r\n\r\n");
@@ -395,7 +398,6 @@ namespace ConsoleTest
                             {
                                 if (isParam)
                                 {
-                                    //var value = paramModel.GetType().GetProperty(key.ToString()).GetValue(paramModel);
                                     sb.Append($"{{{key}}}");
                                 }
                                 else
@@ -430,7 +432,8 @@ namespace ConsoleTest
                 }
             }
 
-            return ProcessParam(result, paramModel);
+            return result;
+            //return ProcessParam(result, paramModel);
         }
 
         private static Expression GenerateGetterLambda(PropertyInfo property)
