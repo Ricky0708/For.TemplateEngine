@@ -410,10 +410,10 @@ namespace ConsoleTest
 
     public static class Extension
     {
+        private delegate string delgGetProperty(object instance);
+
         private static Dictionary<string, Dictionary<string, string>> _cache = new Dictionary<string, Dictionary<string, string>>();
         private static Dictionary<string, delgGetProperty> _delgCache = new Dictionary<string, delgGetProperty>();
-
-        internal delegate string delgGetProperty(object instance);
 
         public static void SetCache(Dictionary<string, string> dic, string langCode) => _cache.Add(langCode, dic);
 
