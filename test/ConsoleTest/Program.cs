@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +11,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using For.TemplateEngine;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ConsoleTest
 {
@@ -369,27 +372,30 @@ namespace ConsoleTest
 
             var a = "";
             var b = "";
+            var json = JsonConvert.SerializeObject(new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
+            var jb = JsonConvert.DeserializeObject<JObject>(json);
 
             Action parallerRenderA = () =>
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
+                    a = Extension.GetMessage(sentenceKey, "zh", jb);
+                    //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
                 });
             };
             Action parallerRenderB = () =>
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    a = Extension.GetMessage(sentenceKey, "en");
+                    //a = Extension.GetMessage(sentenceKey, "en");
                 });
             };
 
             Watch("parallerRenderA 有動態參數", parallerRenderA);
             Watch("parallerRenderB 無動態參數", parallerRenderB);
-            a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
-            b = Extension.GetMessage(sentenceKey, "en");
 
+            a = Extension.GetMessage(sentenceKey, "zh", jb);
+            b = Extension.GetMessage(sentenceKey, "en");
             Console.Write("\r\n\r\n");
             Console.Write(a);
             Console.Write("\r\n\r\n");
@@ -544,7 +550,22 @@ namespace ConsoleTest
                             }
                             else if (chr == '}')
                             {
-                                exprList.Add(Expression.Property(memberExpr, key.ToString()));
+
+                                //var o = JObject.Parse("{\"ProfileAge\":\"60\",\"AA\":\"AAA\",\"BB\":\"BBB\",\"MyC\":\"CCC\"}");
+
+                                //o.SelectTokens("AA").First().Value<string>();
+
+                                var jMethodSelectToken = typeof(JToken).GetMethod("SelectTokens", new[] { typeof(string) });
+                                var jMethodFirst = typeof(Enumerable).GetMethods().Where(p => p.Name == "First" && p.GetParameters().Count() == 1).First();
+                                var jMethodValue = typeof(JToken).GetMethods().Where(m =>
+                                        m.Name == "Value"
+                                        ).First();
+                                var mx = Expression.Call(memberExpr, jMethodSelectToken, Expression.Constant(key.ToString()));
+                                var mx2 = Expression.Call(typeof(Enumerable), "First", new Type[] { typeof(JToken) }, mx);
+                                var mx3 = Expression.Call(typeof(Newtonsoft.Json.Linq.Extensions), "Value", new Type[] { typeof(string) }, mx2);
+
+                                exprList.Add(mx3);
+                                //exprList.Add(Expression.Property(memberExpr, key.ToString()));
                                 key.Clear();
                                 sb.Clear();
                                 start = false;
