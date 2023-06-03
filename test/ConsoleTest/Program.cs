@@ -387,7 +387,7 @@ namespace ConsoleTest
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    //a = Extension.GetMessage(sentenceKey, "en");
+                    a = Extension.GetMessage(sentenceKey, "en");
                 });
             };
 
