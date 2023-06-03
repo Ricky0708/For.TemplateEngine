@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;net46</TargetFrameworks>
+    <TargetFrameworks>net46</TargetFrameworks>
     <Version>1.1.2</Version>
     <Description>High formance use model to replace string template</Description>
     <Copyright>Ricky Huang</Copyright>
