@@ -55,16 +55,22 @@ namespace ConsoleTest
 
             #endregion
 
+            var nn = JsonConvert.SerializeObject(new
+            {
+                Key = "sentenceKey",
+                Data = new { Player = "Ricky", Game = "{MarkSix}" }
+            });
+
             var a = "";
             var b = "";
             var json = JsonConvert.SerializeObject(new { Player = "Ricky", Game = "{MarkSix}" });
             var jb = JsonConvert.DeserializeObject(json);
-
+            var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
             Action parallerRenderA = () =>
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    //a = $"##{sentenceKey}".Localize("zh");
+                    a = x.Localize("zh");
                     //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
                 });
             };
@@ -72,20 +78,21 @@ namespace ConsoleTest
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    //b = $"##{sentenceKey2}".Localize("zh");
+                    b = $"{sentenceKey2}".Localize("zh");
                 });
             };
 
-            //Watch("句子 動態取代  ", parallerRenderA);
-            //Watch("句子 無動態取代", parallerRenderB);
+            Watch("句子 動態取代  ", parallerRenderA);
+            Watch("句子 無動態取代", parallerRenderB);
 
             //json = JsonConvert.SerializeObject(new { Player = "Ricky77777", Game = "{System}" });
             //jb = JsonConvert.DeserializeObject(json);
 
-            a = $"##{sentenceKey}".Localize("zh");
-            b = $"##{sentenceKey}".Localize("en");
-
-
+            x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            Console.WriteLine(x.Localize("zh"));
+            Console.Write("\r\n\r\n");
+            x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
+            Console.WriteLine(x.Localize("en"));
 
             // 寫入 DB
             // DB中有一張表作為對應，有三個欄位，Id, KeyCode, ParamData(json)
@@ -95,7 +102,7 @@ namespace ConsoleTest
 
             // --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
             // --en:"Hi, I'm {#Player}, this is {System}, the game is {#Game}--"
-            var logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            var logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
 
             // 從 DB 讀出
             // 如果語句開頭標示為 ##，取出##後面的id，到對應表中拿到 key跟參數，進行處理
@@ -142,10 +149,15 @@ namespace ConsoleTest
         }
     }
 
+    public class KeyModel
+    {
+        public string Key { get; set; }
+        public JObject Data { get; set; }
+    }
+
     public static class Extension
     {
         private delegate string delgGetProperty(object instance);
-        private static string json = "{\"Player\":\"Ricky\",\"Game\":\"{MarkSix}\"}";
         private static Dictionary<string, Dictionary<string, string>> _cache = new Dictionary<string, Dictionary<string, string>>();
         private static Dictionary<string, delgGetProperty> _delgCache = new Dictionary<string, delgGetProperty>();
 
@@ -156,31 +168,21 @@ namespace ConsoleTest
             // LangTABLE 
             // IndexId, Template, ParamData
             // 這裡要實做寫入 db
-            var param = JsonConvert.SerializeObject(paramData);
-            var sbSQL = new StringBuilder();
-            sbSQL.Append($"INSERT INTO LangTable (Template, ParamData) ");
-            sbSQL.Append($"VALUES ('{str}', '{param}') ");
-            sbSQL.Append($"return IndexId");
-            var indexId = 1;
-
-            return $"##{indexId.ToString()}";
+            var param = JsonConvert.SerializeObject(new { Key = str.Replace("{", "").Replace("}", ""), Data = paramData });
+            return $"##{param}";
         }
 
-        private static (string code, JObject jb) GetParamsById(string id)
-        {
-            // 這裡要實做從 db 讀出
-            return ("sentenceKey", JObject.Parse(json));
-        }
+
         public static string Localize(this string str, string lang)
         {
             var paramModel = default(object);
+            var resultString = "";
             if (str.StartsWith("##"))
             {
-                var obj = GetParamsById(str.Substring(2));
-                str = obj.code;
-                paramModel = obj.jb;
+                var obj = JsonConvert.DeserializeObject<KeyModel>(str.Substring(2));
+                str = obj.Key;
+                paramModel = obj.Data;
             }
-            var resultString = "";
             if (_cache.TryGetValue(lang, out var langDic))
             {
                 if (langDic.TryGetValue(str, out var result))
