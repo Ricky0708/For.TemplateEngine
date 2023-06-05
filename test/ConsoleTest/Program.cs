@@ -34,15 +34,18 @@ namespace ConsoleTest
 
 
             var sentenceKey = "sentenceKey";
+            var sentenceKey2 = "sentenceKey2";
 
             var dicZh = new Dictionary<string, string>();
             var dicEn = new Dictionary<string, string>();
             dicZh.Add(sentenceKey, "嗨! 這是{#Game}，我是玩家{#Player}，這是{System}");
+            dicZh.Add(sentenceKey2, "嗨! 這是{PK10}，我是玩家{MarkSix}，這是{System}");
             dicZh.Add("PK10", "英國賽車");
             dicZh.Add("MarkSix", "六合");
             dicZh.Add("System", "方舟六");
 
             dicEn.Add(sentenceKey, "Hi, I'm {#Player}, this is {System}, the game is {#Game}");
+            dicEn.Add(sentenceKey2, "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
             dicEn.Add("PK10", "PK10");
             dicEn.Add("MarkSix", "MarkSix");
             dicEn.Add("System", "FZ6");
@@ -61,7 +64,7 @@ namespace ConsoleTest
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    a = Extension.GetMessage(sentenceKey, "zh", jb);
+                    //a = $"##{sentenceKey}".Localize("zh");
                     //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
                 });
             };
@@ -69,22 +72,62 @@ namespace ConsoleTest
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    a = Extension.GetMessage(sentenceKey, "en", jb);
+                    //b = $"##{sentenceKey2}".Localize("zh");
                 });
             };
 
-            Watch("parallerRenderA 有動態參數", parallerRenderA);
-            Watch("parallerRenderB 無動態參數", parallerRenderB);
+            //Watch("句子 動態取代  ", parallerRenderA);
+            //Watch("句子 無動態取代", parallerRenderB);
 
-            json = JsonConvert.SerializeObject(new { Player = "Ricky77777", Game = "{System}" });
-            jb = JsonConvert.DeserializeObject(json);
+            //json = JsonConvert.SerializeObject(new { Player = "Ricky77777", Game = "{System}" });
+            //jb = JsonConvert.DeserializeObject(json);
 
-            a = Extension.GetMessage(sentenceKey, "zh", jb);
-            b = Extension.GetMessage(sentenceKey, "en", jb);
+            a = $"##{sentenceKey}".Localize("zh");
+            b = $"##{sentenceKey}".Localize("en");
+
+
+
+            // 寫入 DB
+            // DB中有一張表作為對應，有三個欄位，Id, KeyCode, ParamData(json)
+            // 當呼叫AddParams的時候，會將model轉成json，並將KeyCode及ParamData寫入這張表，並將自增值id反回
+            // 實際logRemark的欄位加上特殊標記##後存到logRemark中，如這個案例會在 logRemark放進 ##1
+            // 並在對應表中放進  1, sentenceKey, {"Player":"Ricky","Game":"{MarkSix}"}"
+
+            // --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
+            // --en:"Hi, I'm {#Player}, this is {System}, the game is {#Game}--"
+            var logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+
+            // 從 DB 讀出
+            // 如果語句開頭標示為 ##，取出##後面的id，到對應表中拿到 key跟參數，進行處理
+            var displayLogZh = logRemark.Localize("zh");
+            var displayLogEn = logRemark.Localize("en");
+
+            // 一般對應
+            // 不使用
+            var word = "{System}-{MarkSix}#{PK10}";
+            var displayWordZh = word.Localize("zh");
+            var displayWordEn = word.Localize("en");
+
             Console.Write("\r\n\r\n");
-            Console.Write(a);
+            Console.Write($"寫入 DB的值     : {logRemark}");
             Console.Write("\r\n\r\n");
-            Console.Write(b);
+            Console.Write($"從db讀出後轉換 Zh: {displayLogZh}");
+            Console.Write("\r\n\r\n");
+            Console.Write($"從db讀出後轉換 En: {displayLogEn}");
+
+            Console.Write("\r\n\r\n");
+            Console.Write("--------------------------------");
+            Console.Write("\r\n\r\n");
+            Console.Write($"寫入 DB的值     : {word}");
+            Console.Write("\r\n\r\n");
+            Console.Write($"直接轉換zh: {displayWordZh}");
+            Console.Write("\r\n\r\n");
+            Console.Write($"直接轉換en: {displayWordEn}");
+            Console.Write("\r\n\r\n");
+            Console.Write("--------------------------------");
+            Console.Write("\r\n\r\n");
+            Console.Write($"正常語句不受影響可相容既有資料: {"這是皆凱科技".Localize("zh")}");
+
             Console.ReadLine();
         }
 
@@ -102,7 +145,7 @@ namespace ConsoleTest
     public static class Extension
     {
         private delegate string delgGetProperty(object instance);
-
+        private static string json = "{\"Player\":\"Ricky\",\"Game\":\"{MarkSix}\"}";
         private static Dictionary<string, Dictionary<string, string>> _cache = new Dictionary<string, Dictionary<string, string>>();
         private static Dictionary<string, delgGetProperty> _delgCache = new Dictionary<string, delgGetProperty>();
 
@@ -112,7 +155,7 @@ namespace ConsoleTest
         {
             // LangTABLE 
             // IndexId, Template, ParamData
-
+            // 這裡要實做寫入 db
             var param = JsonConvert.SerializeObject(paramData);
             var sbSQL = new StringBuilder();
             sbSQL.Append($"INSERT INTO LangTable (Template, ParamData) ");
@@ -123,22 +166,30 @@ namespace ConsoleTest
             return $"##{indexId.ToString()}";
         }
 
-        public static string GetMessage(string code, string langCode, object paramModel = null)
+        private static (string code, JObject jb) GetParamsById(string id)
         {
-            if (_cache.TryGetValue(langCode, out var langDic))
+            // 這裡要實做從 db 讀出
+            return ("sentenceKey", JObject.Parse(json));
+        }
+        public static string Localize(this string str, string lang)
+        {
+            var paramModel = default(object);
+            if (str.StartsWith("##"))
             {
-                if (langDic.TryGetValue(code, out var result))
+                var obj = GetParamsById(str.Substring(2));
+                str = obj.code;
+                paramModel = obj.jb;
+            }
+            var resultString = "";
+            if (_cache.TryGetValue(lang, out var langDic))
+            {
+                if (langDic.TryGetValue(str, out var result))
                 {
-
-                    return result.ConvertToResult(langCode, paramModel);
+                    resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
+                    return ProcessString(resultString, lang);
                 }
             }
-            return "";
-        }
-
-        public static string ConvertToResult(this string str, string lang, object paramModel)
-        {
-            var resultString = ProcessParam(str, paramModel).Invoke(paramModel);
+            resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
             return ProcessString(resultString, lang);
         }
 
