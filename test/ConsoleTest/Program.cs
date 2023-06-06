@@ -85,26 +85,26 @@ namespace ConsoleTest
             Action parallerRenderA = () =>
             {
 
-                Parallel.For((long)0, 1000000, p =>
-                {
-                    a = x.Localize("zh");
-                });
-                //for (int i = 0; i < 1000000; i++)
+                //Parallel.For((long)0, 1000000, p =>
                 //{
                 //    a = x.Localize("zh");
-                //}
+                //});
+                for (int i = 0; i < 1000000; i++)
+                {
+                    a = x.Localize("zh");
+                }
             };
             Action parallerRenderB = () =>
             {
-                Parallel.For((long)0, 1000000, p =>
-                {
-                    b = $"{{{sentenceKey2}}}".Localize("zh");
-                });
-                //for (int i = 0; i < 1000000; i++)
+                //Parallel.For((long)0, 1000000, p =>
                 //{
-                //    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
+                //    b = $"{{{sentenceKey2}}}".Localize("zh");
+                //});
+                for (int i = 0; i < 1000000; i++)
+                {
+                    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
 
-                //}
+                }
             };
 
             Action actionReplace5 = () =>
@@ -221,7 +221,7 @@ namespace ConsoleTest
                         var memberExpr = Expression.Convert(targetExpr, paramData.GetType());
                         var props = paramData.GetType().GetProperties();
                         var sb = new StringBuilder();
-                        exprList.Add(Expression.Constant(str.Replace("{", "").Replace("}", "")));
+                        exprList.Add(Expression.Constant(str));
                         exprList.Add(Expression.Constant("|"));
                         foreach (var prop in props)
                         {
@@ -269,56 +269,68 @@ namespace ConsoleTest
             {
                 if (langDic.TryGetValue(str, out var result))
                 {
-                    resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
-                    return ProcessString(resultString, lang);
+                    //resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
                 }
             }
-            resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
-            return ProcessString(resultString, lang);
+            //resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
+            return ProcessString(str, lang, paramModel);
         }
 
-        private static string ProcessString(this string str, string lang)
+        private static string ProcessString(this string str, string lang, object paramModel)
         {
             var sb = new StringBuilder();
             var start = false;
             var key = new StringBuilder();
-            if (!_cache[lang].TryGetValue(str, out var result))
+            var isParam = false;
+            var result = "";
+            //if (!_cache[lang].TryGetValue(str, out result))
+            //{
+            //    lock (_cache[lang])
+            //    {
+            //        if (!_cache[lang].TryGetValue(str, out result))
+            //        {
+            foreach (var chr in str)
             {
-                lock (_cache[lang])
+                if (chr == '{')
                 {
-                    if (!_cache[lang].TryGetValue(str, out result))
+                    start = true;
+                }
+                else if (chr == '}')
+                {
+                    if (isParam)
                     {
-                        foreach (var chr in str)
-                        {
-                            if (chr == '{')
-                            {
-                                start = true;
-                            }
-                            else if (chr == '}')
-                            {
-
-                                sb.Append(_cache[lang][key.ToString()].ProcessString(lang));
-                                key.Clear();
-                                start = false;
-                            }
-                            else
-                            {
-                                if (start)
-                                {
-                                    key.Append(chr);
-                                }
-                                else
-                                {
-                                    sb.Append(chr);
-                                }
-                            }
-
-                        }
-                        result = sb.ToString();
-                        _cache[lang].Add(str, result);
+                        sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
+                    }
+                    else
+                    {
+                        sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
+                    }
+                    key.Clear();
+                    start = false;
+                    isParam = false;
+                }
+                else if (start && chr == '#')
+                {
+                    isParam = true;
+                }
+                else
+                {
+                    if (start)
+                    {
+                        key.Append(chr);
+                    }
+                    else
+                    {
+                        sb.Append(chr);
                     }
                 }
+
             }
+            result = sb.ToString();
+            //_cache[lang].Add(str, result);
+            //        }
+            //    }
+            //}
 
             return result;
         }
@@ -339,60 +351,20 @@ namespace ConsoleTest
                         var memberExpr = Expression.Convert(targetExpr, paramModel.GetType());
                         var isParam = false;
 
-                        foreach (var chr in str)
-                        {
-                            if (chr == '{')
-                            {
-                                if (sb.Length != 0) 
-                                    exprList.Add(Expression.Constant(sb.ToString()));
-                                sb.Clear();
-                                start = true;
-                            }
-                            else if (chr == '}')
-                            {
-                                if (isParam)
-                                {
-                                    var keyExpr = Expression.Constant(key.ToString());
-                                    PropertyInfo indexer = (from p in memberExpr.Type.GetDefaultMembers().OfType<PropertyInfo>()
-                                                                // This check is probably useless. You can't overload on return value in C#.
-                                                            where p.PropertyType == typeof(string)
-                                                            let q = p.GetIndexParameters()
-                                                            // Here we can search for the exact overload. Length is the number of "parameters" of the indexer, and then we can check for their type.
-                                                            where q.Length == 1 && q[0].ParameterType == typeof(string)
-                                                            select p).Single();
-                                    //var aa = typeof(StringBuilder).GetMethods().Where(p => p.Name == "ToString").First();
-                                    //var n = Expression.Call(keyExpr, aa);
-                                    IndexExpression indexExpr = Expression.Property(memberExpr, indexer, keyExpr);
-                                    exprList.Add(indexExpr);
-                                }
-                                else
-                                {
-                                    exprList.Add(Expression.Constant($"{{{key}}}"));
-                                }
+                        var keyExpr = Expression.Constant(str);
+                        PropertyInfo indexer = (from p in memberExpr.Type.GetDefaultMembers().OfType<PropertyInfo>()
+                                                where p.PropertyType == typeof(string)
+                                                let q = p.GetIndexParameters()
+                                                where q.Length == 1 && q[0].ParameterType == typeof(string)
+                                                select p).Single();
+                        IndexExpression indexExpr = Expression.Property(memberExpr, indexer, keyExpr);
+                        exprList.Add(indexExpr);
 
-                                //exprList.Add(Expression.Property(memberExpr, key.ToString()));
-                                key.Clear();
-                                sb.Clear();
-                                start = false;
-                                isParam = false;
-                            }
-                            else if (start && chr == '#')
-                            {
-                                isParam = true;
-                            }
-                            else
-                            {
-                                if (start)
-                                {
-                                    key.Append(chr);
-                                }
-                                else
-                                {
-                                    sb.Append(chr);
-                                }
-                            }
-                        }
-                        if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
+                        //exprList.Add(Expression.Property(memberExpr, key.ToString()));
+                        key.Clear();
+                        sb.Clear();
+                        start = false;
+                        isParam = false;
 
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
                         var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
