@@ -12,7 +12,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using For.TemplateEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -96,12 +95,12 @@ namespace ConsoleTest
                 //Parallel.For((long)0, 1000000, p =>
                 //{
                 //    x.Localize("zh");
-                //    JsonConvert.DeserializeObject<QQ>(qjson);
+                //    //JsonConvert.DeserializeObject<QQ>(qjson);
                 //    //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
                 //});
                 for (int i = 0; i < 1000000; i++)
                 {
-                    a = "##{\"Key\":\"sentenceKey\",\"Data\":{\"Player\":\"Ricky\",\"Game\":\"{PK10}\"}}".Localize("zh");
+                    a = x.Localize("zh");
                 }
             };
             Action parallerRenderB = () =>
@@ -142,9 +141,9 @@ namespace ConsoleTest
                 }
             };
 
-            //Watch($"句子 動態取代   ", parallerRenderA);
-            Watch($"句子 無動態取代 ", parallerRenderB);
-            Watch($"句子 Replace5 ", actionReplace5);
+            Watch($"句子 動態取代   ", parallerRenderA);
+            //Watch($"句子 無動態取代 ", parallerRenderB);
+            //Watch($"句子 Replace5 ", actionReplace5);
             //Console.WriteLine(a);
             Console.WriteLine(b);
             Console.WriteLine(txt);
@@ -210,38 +209,80 @@ namespace ConsoleTest
 
     public static class Extension
     {
+        private delegate string delgGetJToken(object instance);
         private delegate string delgGetProperty(object instance);
+        private static Dictionary<string, delgGetProperty> _delgCacheGetProperty = new Dictionary<string, delgGetProperty>();
         private static Dictionary<string, Dictionary<string, string>> _cache = new Dictionary<string, Dictionary<string, string>>();
-        private static Dictionary<string, delgGetProperty> _delgCache = new Dictionary<string, delgGetProperty>();
+        private static Dictionary<string, delgGetJToken> _delgCache = new Dictionary<string, delgGetJToken>();
 
         public static void SetLanguages(Dictionary<string, string> dic, string langCode) => _cache.Add(langCode, dic);
 
         public static string AddParams(this string str, object paramData)
         {
-            var param = JsonConvert.SerializeObject(new { Key = str.Replace("{", "").Replace("}", ""), Data = paramData });
-            return $"##{param}";
-        }
+            if (!_delgCacheGetProperty.TryGetValue(str, out var lambda))
+            {
+                lock (_delgCacheGetProperty)
+                {
+                    if (!_delgCacheGetProperty.TryGetValue(str, out lambda))
+                    {
+                        var exprList = new List<Expression>();
+                        var targetExpr = Expression.Parameter(typeof(object), "target");
+                        var memberExpr = Expression.Convert(targetExpr, paramData.GetType());
+                        var props = paramData.GetType().GetProperties();
+                        var sb = new StringBuilder();
+                        exprList.Add(Expression.Constant(str.Replace("{", "").Replace("}", "")));
+                        exprList.Add(Expression.Constant("|"));
+                        foreach (var prop in props)
+                        {
+                            var propExpression = Expression.Property(memberExpr, prop);
+                            var constExpression = Expression.Constant(propExpression.Member.Name);
+                            exprList.Add(constExpression);
+                            exprList.Add(Expression.Constant("|"));
+                            exprList.Add(propExpression);
+                            exprList.Add(Expression.Constant("|"));
+                        }
 
+                        var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
+                        var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
+                        var methodExpr = Expression.Call(method, paramsExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExpr, targetExpr);
+                        lambda = lambdaExpr.Compile();
+                        _delgCacheGetProperty.Add(str, lambda);
+                    }
+                }
+            }
+
+
+            var nn = lambda.Invoke(paramData);
+            return $"##{lambda.Invoke(paramData)}";
+
+            //var param = JsonConvert.SerializeObject(new { Key = str.Replace("{", "").Replace("}", ""), Data = paramData });
+            //return $"##{param}";
+        }
 
         public static string Localize(this string str, string lang)
         {
-            var paramModel = default(object);
+            var paramModel = default(Dictionary<string, string>);
             var resultString = "";
             if (str.StartsWith("##"))
             {
-                var obj = JsonConvert.DeserializeObject<KeyModel>(str.Substring(2));
-                str = obj.Key;
-                paramModel = obj.Data;
+                var obj = str.Substring(2).Split('|');
+                str = obj[0];
+                paramModel = new Dictionary<string, string>();
+                for (int i = 1; i < obj.Length - 1; i += 2)
+                {
+                    paramModel.Add(obj[i], obj[i + 1]);
+                }
             }
             if (_cache.TryGetValue(lang, out var langDic))
             {
                 if (langDic.TryGetValue(str, out var result))
                 {
-                    resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
+                    resultString = paramModel == null ? str : ProcessParamB(result, paramModel).Invoke(paramModel);
                     return ProcessString(resultString, lang);
                 }
             }
-            resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
+            resultString = paramModel == null ? str : ProcessParamB(str, paramModel).Invoke(paramModel);
             return ProcessString(resultString, lang);
         }
 
@@ -291,7 +332,7 @@ namespace ConsoleTest
             return result;
         }
 
-        private static delgGetProperty ProcessParam(string str, object paramModel)
+        private static delgGetJToken ProcessParam(string str, object paramModel)
         {
             if (!_delgCache.TryGetValue(str, out var lambda))
             {
@@ -317,9 +358,6 @@ namespace ConsoleTest
                             }
                             else if (chr == '}')
                             {
-
-                                //var o = JObject.Parse("{\"ProfileAge\":\"60\",\"AA\":\"AAA\",\"BB\":\"BBB\",\"MyC\":\"CCC\"}");
-                                //o.SelectTokens("AA").First().Value<string>();
                                 if (isParam)
                                 {
                                     var jMethodSelectToken = typeof(JToken).GetMethod("SelectTokens", new[] { typeof(string) });
@@ -365,7 +403,91 @@ namespace ConsoleTest
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
                         var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
                         var methodExpr = Expression.Call(method, paramsExpr);
-                        var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExpr, targetExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetJToken>(methodExpr, targetExpr);
+                        lambda = lambdaExpr.Compile();
+                        _delgCache.Add(str, lambda);
+                    }
+                }
+            }
+
+            return lambda;
+        }
+
+        private static delgGetJToken ProcessParamB(string str, object paramModel)
+        {
+            if (!_delgCache.TryGetValue(str, out var lambda))
+            {
+                lock (_delgCache)
+                {
+                    if (!_delgCache.TryGetValue(str, out lambda))
+                    {
+                        var sb = new StringBuilder();
+                        var start = false;
+                        var key = new StringBuilder();
+                        var exprList = new List<Expression>();
+                        var targetExpr = Expression.Parameter(typeof(object), "target");
+                        var memberExpr = Expression.Convert(targetExpr, paramModel.GetType());
+                        var isParam = false;
+
+                        foreach (var chr in str)
+                        {
+                            if (chr == '{')
+                            {
+                                if (sb.Length != 0) 
+                                    exprList.Add(Expression.Constant(sb.ToString()));
+                                sb.Clear();
+                                start = true;
+                            }
+                            else if (chr == '}')
+                            {
+                                if (isParam)
+                                {
+                                    var keyExpr = Expression.Constant(key.ToString());
+                                    PropertyInfo indexer = (from p in memberExpr.Type.GetDefaultMembers().OfType<PropertyInfo>()
+                                                                // This check is probably useless. You can't overload on return value in C#.
+                                                            where p.PropertyType == typeof(string)
+                                                            let q = p.GetIndexParameters()
+                                                            // Here we can search for the exact overload. Length is the number of "parameters" of the indexer, and then we can check for their type.
+                                                            where q.Length == 1 && q[0].ParameterType == typeof(string)
+                                                            select p).Single();
+                                    //var aa = typeof(StringBuilder).GetMethods().Where(p => p.Name == "ToString").First();
+                                    //var n = Expression.Call(keyExpr, aa);
+                                    IndexExpression indexExpr = Expression.Property(memberExpr, indexer, keyExpr);
+                                    exprList.Add(indexExpr);
+                                }
+                                else
+                                {
+                                    exprList.Add(Expression.Constant($"{{{key}}}"));
+                                }
+
+                                //exprList.Add(Expression.Property(memberExpr, key.ToString()));
+                                key.Clear();
+                                sb.Clear();
+                                start = false;
+                                isParam = false;
+                            }
+                            else if (start && chr == '#')
+                            {
+                                isParam = true;
+                            }
+                            else
+                            {
+                                if (start)
+                                {
+                                    key.Append(chr);
+                                }
+                                else
+                                {
+                                    sb.Append(chr);
+                                }
+                            }
+                        }
+                        if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
+
+                        var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
+                        var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
+                        var methodExpr = Expression.Call(method, paramsExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetJToken>(methodExpr, targetExpr);
                         lambda = lambdaExpr.Compile();
                         _delgCache.Add(str, lambda);
                     }
