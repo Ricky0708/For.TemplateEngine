@@ -84,22 +84,27 @@ namespace ConsoleTest
             var txt = "";
             Action parallerRenderA = () =>
             {
-                for (int i = 0; i < 1000000; i++)
+
+                Parallel.For((long)0, 1000000, p =>
                 {
                     a = x.Localize("zh");
-                }
+                });
+                //for (int i = 0; i < 1000000; i++)
+                //{
+                //    a = x.Localize("zh");
+                //}
             };
             Action parallerRenderB = () =>
             {
-                //Parallel.For((long)0, 1000000, p =>
-                //{
-                //    b = $"{sentenceKey2}".Localize("zh");
-                //});
-                for (int i = 0; i < 1000000; i++)
+                Parallel.For((long)0, 1000000, p =>
                 {
-                    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
+                    b = $"{{{sentenceKey2}}}".Localize("zh");
+                });
+                //for (int i = 0; i < 1000000; i++)
+                //{
+                //    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
 
-                }
+                //}
             };
 
             Action actionReplace5 = () =>
@@ -128,17 +133,17 @@ namespace ConsoleTest
 
             Watch($"句子 動態取代   ", parallerRenderA);
             Watch($"句子 無動態取代 ", parallerRenderB);
-            Watch($"句子 Replace5 ", actionReplace5);
+            //Watch($"句子 Replace5 ", actionReplace5);
             Console.WriteLine(a);
             Console.WriteLine(b);
-            Console.WriteLine(txt);
+            //Console.WriteLine(txt);
 
 
-            //x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
-            //Console.WriteLine(x.Localize("zh"));
-            //Console.Write("\r\n\r\n");
-            //x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
-            //Console.WriteLine(x.Localize("en"));
+            x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            Console.WriteLine(x.Localize("zh"));
+            Console.Write("\r\n\r\n");
+            x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
+            Console.WriteLine(x.Localize("zh"));
 
 
             //// --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
@@ -148,6 +153,7 @@ namespace ConsoleTest
             //// 從 DB 讀出
             //// 如果語句開頭標示為 ##，取出##後面的id，到對應表中拿到 key跟參數，進行處理
             //var displayLogZh = logRemark.Localize("zh");
+            //logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
             //var displayLogEn = logRemark.Localize("en");
 
             //// 一般對應
@@ -316,7 +322,6 @@ namespace ConsoleTest
 
             return result;
         }
-
 
         private static delgGetJToken ProcessParam(string str, object paramModel)
         {
