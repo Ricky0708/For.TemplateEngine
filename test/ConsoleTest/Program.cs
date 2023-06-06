@@ -112,15 +112,42 @@ namespace ConsoleTest
                 //});
                 for (int i = 0; i < 1000000; i++)
                 {
-                    b = "{sentenceKey2}".Localize("zh");
+                    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
 
                 }
             };
 
-            Watch($"句子 動態取代   ", parallerRenderA);
+            var txt = "";
+            Action actionReplace5 = () =>
+            {
+                var rgx = new Regex(@"{(.*?)}");
+                var parts = rgx.Split("Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
+                for (var i = 0; i < 1000000; i++)
+                {
+                    var sb = new StringBuilder();
+                    foreach (var item in parts)
+                    {
+                        string temp;
+                        if (dicZh.TryGetValue(item, out var v))
+                        {
+                            temp = v;
+                        }
+                        else
+                        {
+                            temp = item;
+                        }
+                        sb.Append(temp);
+                    }
+                    txt = sb.ToString();
+                }
+            };
+
+            //Watch($"句子 動態取代   ", parallerRenderA);
             Watch($"句子 無動態取代 ", parallerRenderB);
-            Console.WriteLine(a);
+            Watch($"句子 Replace5 ", actionReplace5);
+            //Console.WriteLine(a);
             Console.WriteLine(b);
+            Console.WriteLine(txt);
 
 
             //x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
