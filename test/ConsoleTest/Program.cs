@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Media;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -17,6 +18,19 @@ using Newtonsoft.Json.Linq;
 
 namespace ConsoleTest
 {
+    public class KeyModel
+    {
+        public string Key { get; set; }
+        public JObject Data { get; set; }
+    }
+
+    public class QQ
+    {
+        public string Player { get; set; }
+        public string Game { get; set; }
+        public string System { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -43,16 +57,25 @@ namespace ConsoleTest
             dicZh.Add("PK10", "英國賽車");
             dicZh.Add("MarkSix", "六合");
             dicZh.Add("System", "方舟六");
+            dicZh.Add("testWork", "修改{#Agent}设置 - 调整信用余额[{#Game}](分给下级{#Player} 额度{#Amount})");
 
             dicEn.Add(sentenceKey, "Hi, I'm {#Player}, this is {System}, the game is {#Game}");
             dicEn.Add(sentenceKey2, "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
             dicEn.Add("PK10", "PK10");
             dicEn.Add("MarkSix", "MarkSix");
             dicEn.Add("System", "FZ6");
-
+            dicEn.Add("testWork", "修改{Agent}设置 - 调整信用余额[{Game}](分给下级{Player} 额度{Amount})");
+       
             Extension.SetLanguages(dicZh, "zh");
             Extension.SetLanguages(dicEn, "en");
 
+            //var logRemark = "{testWork}".AddParams(new {
+            //        Agent ="AAAAA",
+            //        Game = "$PK10",
+            //        Player = "Rucky", 
+            //        Amount = "100",
+            //        Remark= "修改{Agent}设置 - 调整信用余额[{Game}](分给下级{Player} 额度{Amount})"
+            //});
             #endregion
 
             var nn = JsonConvert.SerializeObject(new
@@ -66,11 +89,14 @@ namespace ConsoleTest
             var json = JsonConvert.SerializeObject(new { Player = "Ricky", Game = "{MarkSix}" });
             var jb = JsonConvert.DeserializeObject(json);
             var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
+            var qj = new QQ { Player = "Ricky", Game = "{MarkSix}", System = "Fz" };
+            var qjson = JsonConvert.SerializeObject(qj);
             Action parallerRenderA = () =>
             {
                 Parallel.For((long)0, 1000000, p =>
                 {
-                    a = x.Localize("zh");
+                    //x.Localize("zh");
+                    JsonConvert.DeserializeObject<QQ>(qjson);
                     //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
                 });
             };
@@ -149,11 +175,7 @@ namespace ConsoleTest
         }
     }
 
-    public class KeyModel
-    {
-        public string Key { get; set; }
-        public JObject Data { get; set; }
-    }
+
 
     public static class Extension
     {
@@ -165,9 +187,6 @@ namespace ConsoleTest
 
         public static string AddParams(this string str, object paramData)
         {
-            // LangTABLE 
-            // IndexId, Template, ParamData
-            // 這裡要實做寫入 db
             var param = JsonConvert.SerializeObject(new { Key = str.Replace("{", "").Replace("}", ""), Data = paramData });
             return $"##{param}";
         }
