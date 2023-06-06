@@ -65,7 +65,7 @@ namespace ConsoleTest
             dicEn.Add("MarkSix", "MarkSix");
             dicEn.Add("System", "FZ6");
             dicEn.Add("testWork", "修改{Agent}设置 - 调整信用余额[{Game}](分给下级{Player} 额度{Amount})");
-       
+
             Extension.SetLanguages(dicZh, "zh");
             Extension.SetLanguages(dicEn, "en");
 
@@ -93,73 +93,77 @@ namespace ConsoleTest
             var qjson = JsonConvert.SerializeObject(qj);
             Action parallerRenderA = () =>
             {
-                Parallel.For((long)0, 1000000, p =>
+                //Parallel.For((long)0, 1000000, p =>
+                //{
+                //    x.Localize("zh");
+                //    JsonConvert.DeserializeObject<QQ>(qjson);
+                //    //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
+                //});
+                for (int i = 0; i < 1000000; i++)
                 {
-                    //x.Localize("zh");
-                    JsonConvert.DeserializeObject<QQ>(qjson);
-                    //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
-                });
+                    a = "##{\"Key\":\"sentenceKey\",\"Data\":{\"Player\":\"Ricky\",\"Game\":\"{PK10}\"}}".Localize("zh");
+                }
             };
             Action parallerRenderB = () =>
             {
-                Parallel.For((long)0, 1000000, p =>
+                //Parallel.For((long)0, 1000000, p =>
+                //{
+                //    b = $"{sentenceKey2}".Localize("zh");
+                //});
+                for (int i = 0; i < 1000000; i++)
                 {
-                    b = $"{sentenceKey2}".Localize("zh");
-                });
+                    b = "{sentenceKey2}".Localize("zh");
+
+                }
             };
 
-            Watch("句子 動態取代  ", parallerRenderA);
-            Watch("句子 無動態取代", parallerRenderB);
+            Watch($"句子 動態取代   ", parallerRenderA);
+            Watch($"句子 無動態取代 ", parallerRenderB);
+            Console.WriteLine(a);
+            Console.WriteLine(b);
 
-            //json = JsonConvert.SerializeObject(new { Player = "Ricky77777", Game = "{System}" });
-            //jb = JsonConvert.DeserializeObject(json);
 
-            x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
-            Console.WriteLine(x.Localize("zh"));
-            Console.Write("\r\n\r\n");
-            x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
-            Console.WriteLine(x.Localize("en"));
+            //x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            //Console.WriteLine(x.Localize("zh"));
+            //Console.Write("\r\n\r\n");
+            //x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
+            //Console.WriteLine(x.Localize("en"));
 
-            // 寫入 DB
-            // DB中有一張表作為對應，有三個欄位，Id, KeyCode, ParamData(json)
-            // 當呼叫AddParams的時候，會將model轉成json，並將KeyCode及ParamData寫入這張表，並將自增值id反回
-            // 實際logRemark的欄位加上特殊標記##後存到logRemark中，如這個案例會在 logRemark放進 ##1
-            // 並在對應表中放進  1, sentenceKey, {"Player":"Ricky","Game":"{MarkSix}"}"
 
-            // --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
-            // --en:"Hi, I'm {#Player}, this is {System}, the game is {#Game}--"
-            var logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
+            //// --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
+            //// --en:"Hi, I'm {#Player}, this is {System}, the game is {#Game}--"
+            //var logRemark = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
 
-            // 從 DB 讀出
-            // 如果語句開頭標示為 ##，取出##後面的id，到對應表中拿到 key跟參數，進行處理
-            var displayLogZh = logRemark.Localize("zh");
-            var displayLogEn = logRemark.Localize("en");
+            //// 從 DB 讀出
+            //// 如果語句開頭標示為 ##，取出##後面的id，到對應表中拿到 key跟參數，進行處理
+            //var displayLogZh = logRemark.Localize("zh");
+            //var displayLogEn = logRemark.Localize("en");
 
-            // 一般對應
-            // 不使用
-            var word = "{System}-{MarkSix}#{PK10}";
-            var displayWordZh = word.Localize("zh");
-            var displayWordEn = word.Localize("en");
+            //// 一般對應
+            //// 不使用
+            //var word = "{System}-{MarkSix}#{PK10}";
+            //var displayWordZh = word.Localize("zh");
+            //var displayWordEn = word.Localize("en");
 
-            Console.Write("\r\n\r\n");
-            Console.Write($"寫入 DB的值     : {logRemark}");
-            Console.Write("\r\n\r\n");
-            Console.Write($"從db讀出後轉換 Zh: {displayLogZh}");
-            Console.Write("\r\n\r\n");
-            Console.Write($"從db讀出後轉換 En: {displayLogEn}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"寫入 DB的值     : {logRemark}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"從db讀出後轉換 Zh: {displayLogZh}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"從db讀出後轉換 En: {displayLogEn}");
 
-            Console.Write("\r\n\r\n");
-            Console.Write("--------------------------------");
-            Console.Write("\r\n\r\n");
-            Console.Write($"寫入 DB的值     : {word}");
-            Console.Write("\r\n\r\n");
-            Console.Write($"直接轉換zh: {displayWordZh}");
-            Console.Write("\r\n\r\n");
-            Console.Write($"直接轉換en: {displayWordEn}");
-            Console.Write("\r\n\r\n");
-            Console.Write("--------------------------------");
-            Console.Write("\r\n\r\n");
-            Console.Write($"正常語句不受影響可相容既有資料: {"這是皆凱科技".Localize("zh")}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write("--------------------------------");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"寫入 DB的值     : {word}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"直接轉換zh: {displayWordZh}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"直接轉換en: {displayWordEn}");
+            //Console.Write("\r\n\r\n");
+            //Console.Write("--------------------------------");
+            //Console.Write("\r\n\r\n");
+            //Console.Write($"正常語句不受影響可相容既有資料: {"這是皆凱科技".Localize("zh")}");
 
             Console.ReadLine();
         }
