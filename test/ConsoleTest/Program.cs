@@ -77,6 +77,8 @@ namespace ConsoleTest
             //});
             #endregion
 
+            var xx = "{#MarkSix}".AddParams(new { MarkSix = "asdf" });
+            Console.Write(xx.Localize("zh"));
 
             var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
             var a = "";
@@ -283,54 +285,54 @@ namespace ConsoleTest
             var key = new StringBuilder();
             var isParam = false;
             var result = "";
-            //if (!_cache[lang].TryGetValue(str, out result))
-            //{
-            //    lock (_cache[lang])
-            //    {
-            //        if (!_cache[lang].TryGetValue(str, out result))
-            //        {
-            foreach (var chr in str)
+            if (!_cache[lang].TryGetValue(str, out result))
             {
-                if (chr == '{')
+                lock (_cache[lang])
                 {
-                    start = true;
-                }
-                else if (chr == '}')
-                {
-                    if (isParam)
+                    if (!_cache[lang].TryGetValue(str, out result))
                     {
-                        sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
-                    }
-                    else
-                    {
-                        sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
-                    }
-                    key.Clear();
-                    start = false;
-                    isParam = false;
-                }
-                else if (start && chr == '#')
-                {
-                    isParam = true;
-                }
-                else
-                {
-                    if (start)
-                    {
-                        key.Append(chr);
-                    }
-                    else
-                    {
-                        sb.Append(chr);
-                    }
-                }
+                        foreach (var chr in str)
+                        {
+                            if (chr == '{')
+                            {
+                                start = true;
+                            }
+                            else if (chr == '}')
+                            {
+                                if (isParam)
+                                {
+                                    sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
+                                }
+                                else
+                                {
+                                    sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
+                                }
+                                key.Clear();
+                                start = false;
+                                isParam = false;
+                            }
+                            else if (start && chr == '#')
+                            {
+                                isParam = true;
+                            }
+                            else
+                            {
+                                if (start)
+                                {
+                                    key.Append(chr);
+                                }
+                                else
+                                {
+                                    sb.Append(chr);
+                                }
+                            }
 
+                        }
+                        result = sb.ToString();
+                        //_cache[lang].Add(str, result);
+                    }
+                }
             }
-            result = sb.ToString();
-            //_cache[lang].Add(str, result);
-            //        }
-            //    }
-            //}
 
             return result;
         }
