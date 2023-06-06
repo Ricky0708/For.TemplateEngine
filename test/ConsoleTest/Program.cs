@@ -77,27 +77,13 @@ namespace ConsoleTest
             //});
             #endregion
 
-            var nn = JsonConvert.SerializeObject(new
-            {
-                Key = "sentenceKey",
-                Data = new { Player = "Ricky", Game = "{MarkSix}" }
-            });
 
+            var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
             var a = "";
             var b = "";
-            var json = JsonConvert.SerializeObject(new { Player = "Ricky", Game = "{MarkSix}" });
-            var jb = JsonConvert.DeserializeObject(json);
-            var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
-            var qj = new QQ { Player = "Ricky", Game = "{MarkSix}", System = "Fz" };
-            var qjson = JsonConvert.SerializeObject(qj);
+            var txt = "";
             Action parallerRenderA = () =>
             {
-                //Parallel.For((long)0, 1000000, p =>
-                //{
-                //    x.Localize("zh");
-                //    //JsonConvert.DeserializeObject<QQ>(qjson);
-                //    //a = Extension.GetMessage(sentenceKey, "zh", new { ProfileAge = "60", AA = "AAA", BB = "BBB", MyC = "CCC" });
-                //});
                 for (int i = 0; i < 1000000; i++)
                 {
                     a = x.Localize("zh");
@@ -116,7 +102,6 @@ namespace ConsoleTest
                 }
             };
 
-            var txt = "";
             Action actionReplace5 = () =>
             {
                 var rgx = new Regex(@"{(.*?)}");
@@ -142,9 +127,9 @@ namespace ConsoleTest
             };
 
             Watch($"句子 動態取代   ", parallerRenderA);
-            //Watch($"句子 無動態取代 ", parallerRenderB);
-            //Watch($"句子 Replace5 ", actionReplace5);
-            //Console.WriteLine(a);
+            Watch($"句子 無動態取代 ", parallerRenderB);
+            Watch($"句子 Replace5 ", actionReplace5);
+            Console.WriteLine(a);
             Console.WriteLine(b);
             Console.WriteLine(txt);
 
@@ -278,11 +263,11 @@ namespace ConsoleTest
             {
                 if (langDic.TryGetValue(str, out var result))
                 {
-                    resultString = paramModel == null ? str : ProcessParamB(result, paramModel).Invoke(paramModel);
+                    resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
                     return ProcessString(resultString, lang);
                 }
             }
-            resultString = paramModel == null ? str : ProcessParamB(str, paramModel).Invoke(paramModel);
+            resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
             return ProcessString(resultString, lang);
         }
 
@@ -332,88 +317,8 @@ namespace ConsoleTest
             return result;
         }
 
+
         private static delgGetJToken ProcessParam(string str, object paramModel)
-        {
-            if (!_delgCache.TryGetValue(str, out var lambda))
-            {
-                lock (_delgCache)
-                {
-                    if (!_delgCache.TryGetValue(str, out lambda))
-                    {
-                        var sb = new StringBuilder();
-                        var start = false;
-                        var key = new StringBuilder();
-                        var exprList = new List<Expression>();
-                        var targetExpr = Expression.Parameter(typeof(object), "target");
-                        var memberExpr = Expression.Convert(targetExpr, paramModel.GetType());
-                        var isParam = false;
-
-                        foreach (var chr in str)
-                        {
-                            if (chr == '{')
-                            {
-                                if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
-                                sb.Clear();
-                                start = true;
-                            }
-                            else if (chr == '}')
-                            {
-                                if (isParam)
-                                {
-                                    var jMethodSelectToken = typeof(JToken).GetMethod("SelectTokens", new[] { typeof(string) });
-                                    var jMethodFirst = typeof(Enumerable).GetMethods().Where(p => p.Name == "First" && p.GetParameters().Count() == 1).First();
-                                    var jMethodValue = typeof(JToken).GetMethods().Where(m =>
-                                            m.Name == "Value"
-                                            ).First();
-                                    var mx = Expression.Call(memberExpr, jMethodSelectToken, Expression.Constant(key.ToString()));
-                                    var mx2 = Expression.Call(typeof(Enumerable), "First", new Type[] { typeof(JToken) }, mx);
-                                    var mx3 = Expression.Call(typeof(Newtonsoft.Json.Linq.Extensions), "Value", new Type[] { typeof(string) }, mx2);
-
-                                    exprList.Add(mx3);
-                                }
-                                else
-                                {
-                                    exprList.Add(Expression.Constant($"{{{key}}}"));
-                                }
-
-                                //exprList.Add(Expression.Property(memberExpr, key.ToString()));
-                                key.Clear();
-                                sb.Clear();
-                                start = false;
-                                isParam = false;
-                            }
-                            else if (start && chr == '#')
-                            {
-                                isParam = true;
-                            }
-                            else
-                            {
-                                if (start)
-                                {
-                                    key.Append(chr);
-                                }
-                                else
-                                {
-                                    sb.Append(chr);
-                                }
-                            }
-                        }
-                        if (sb.Length != 0) exprList.Add(Expression.Constant(sb.ToString()));
-
-                        var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
-                        var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
-                        var methodExpr = Expression.Call(method, paramsExpr);
-                        var lambdaExpr = Expression.Lambda<delgGetJToken>(methodExpr, targetExpr);
-                        lambda = lambdaExpr.Compile();
-                        _delgCache.Add(str, lambda);
-                    }
-                }
-            }
-
-            return lambda;
-        }
-
-        private static delgGetJToken ProcessParamB(string str, object paramModel)
         {
             if (!_delgCache.TryGetValue(str, out var lambda))
             {
