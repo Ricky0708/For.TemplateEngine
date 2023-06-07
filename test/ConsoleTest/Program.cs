@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
@@ -8,6 +9,7 @@ using System.Linq.Expressions;
 using System.Media;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -77,13 +79,17 @@ namespace ConsoleTest
             //});
             #endregion
 
-            var xx = "{#MarkSix}".AddParams(new { MarkSix = "asdf" });
-            Console.Write(xx.Localize("zh"));
-
             var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
+            var q = "sentenceKey".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
             var a = "";
             var b = "";
             var txt = "";
+
+            Console.WriteLine("---");
+            Console.WriteLine(x.Localize("zh"));
+            Console.WriteLine("\r\n\r\n");
+            Console.WriteLine(q.Localize("zh"));
+
             Action parallerRenderA = () =>
             {
 
@@ -104,7 +110,7 @@ namespace ConsoleTest
                 //});
                 for (int i = 0; i < 1000000; i++)
                 {
-                    b = "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}".Localize("zh");
+                    b = "{sentenceKey2}".Localize("zh");
 
                 }
             };
@@ -256,7 +262,6 @@ namespace ConsoleTest
         public static string Localize(this string str, string lang)
         {
             var paramModel = default(Dictionary<string, string>);
-            var resultString = "";
             if (str.StartsWith("##"))
             {
                 var obj = str.Substring(2).Split('|');
@@ -267,73 +272,79 @@ namespace ConsoleTest
                     paramModel.Add(obj[i], obj[i + 1]);
                 }
             }
-            if (_cache.TryGetValue(lang, out var langDic))
-            {
-                if (langDic.TryGetValue(str, out var result))
-                {
-                    //resultString = paramModel == null ? str : ProcessParam(result, paramModel).Invoke(paramModel);
-                }
-            }
             //resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
-            return ProcessString(str, lang, paramModel);
+            return ProcessStr(str, lang, paramModel);
         }
 
         private static string ProcessString(this string str, string lang, object paramModel)
+        {
+            var result = "";
+            if (paramModel == null)
+            {
+                if (!_cache[lang].TryGetValue(str, out result))
+                {
+                    lock (_cache[lang])
+                    {
+                        if (!_cache[lang].TryGetValue(str, out result))
+                        {
+                            result = ProcessString(str, lang, paramModel);
+                            _cache[lang].Add(str, result);
+                        }   
+                    }
+                }
+            }
+            else
+            {
+                result = ProcessString(str, lang, paramModel);
+            }
+            return result;
+        }
+
+        private static string ProcessStr(this string str, string lang, object paramModel)
         {
             var sb = new StringBuilder();
             var start = false;
             var key = new StringBuilder();
             var isParam = false;
             var result = "";
-            if (!_cache[lang].TryGetValue(str, out result))
+            foreach (var chr in str)
             {
-                lock (_cache[lang])
+                if (chr == '{')
                 {
-                    if (!_cache[lang].TryGetValue(str, out result))
+                    start = true;
+                }
+                else if (chr == '}')
+                {
+                    if (isParam)
                     {
-                        foreach (var chr in str)
-                        {
-                            if (chr == '{')
-                            {
-                                start = true;
-                            }
-                            else if (chr == '}')
-                            {
-                                if (isParam)
-                                {
-                                    sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
-                                }
-                                else
-                                {
-                                    sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
-                                }
-                                key.Clear();
-                                start = false;
-                                isParam = false;
-                            }
-                            else if (start && chr == '#')
-                            {
-                                isParam = true;
-                            }
-                            else
-                            {
-                                if (start)
-                                {
-                                    key.Append(chr);
-                                }
-                                else
-                                {
-                                    sb.Append(chr);
-                                }
-                            }
-
-                        }
-                        result = sb.ToString();
-                        //_cache[lang].Add(str, result);
+                        sb.Append(ProcessStr(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
+                    }
+                    else
+                    {
+                        sb.Append(_cache[lang][key.ToString()].ProcessStr(lang, paramModel));
+                    }
+                    key.Clear();
+                    start = false;
+                    isParam = false;
+                }
+                else if (start && chr == '#')
+                {
+                    isParam = true;
+                }
+                else
+                {
+                    if (start)
+                    {
+                        key.Append(chr);
+                    }
+                    else
+                    {
+                        sb.Append(chr);
                     }
                 }
-            }
 
+            }
+            result = sb.ToString();
             return result;
         }
 
