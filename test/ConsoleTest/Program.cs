@@ -272,8 +272,8 @@ namespace ConsoleTest
                     paramModel.Add(obj[i], obj[i + 1]);
                 }
             }
-            //resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
             return Parser(str, lang, paramModel);
+            return "";
         }
 
         private static string ProcessString(this string str, string lang, object paramModel)
@@ -289,7 +289,7 @@ namespace ConsoleTest
                         {
                             result = Parser(str, lang, paramModel);
                             _cache[lang].Add(str, result);
-                        }   
+                        }
                     }
                 }
             }
