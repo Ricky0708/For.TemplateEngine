@@ -273,7 +273,7 @@ namespace ConsoleTest
                 }
             }
             //resultString = paramModel == null ? str : ProcessParam(str, paramModel).Invoke(paramModel);
-            return ProcessStr(str, lang, paramModel);
+            return Parser(str, lang, paramModel);
         }
 
         private static string ProcessString(this string str, string lang, object paramModel)
@@ -287,7 +287,7 @@ namespace ConsoleTest
                     {
                         if (!_cache[lang].TryGetValue(str, out result))
                         {
-                            result = ProcessString(str, lang, paramModel);
+                            result = Parser(str, lang, paramModel);
                             _cache[lang].Add(str, result);
                         }   
                     }
@@ -295,12 +295,12 @@ namespace ConsoleTest
             }
             else
             {
-                result = ProcessString(str, lang, paramModel);
+                result = Parser(str, lang, paramModel);
             }
             return result;
         }
 
-        private static string ProcessStr(this string str, string lang, object paramModel)
+        private static string Parser(this string str, string lang, object paramModel)
         {
             var sb = new StringBuilder();
             var start = false;
@@ -317,11 +317,11 @@ namespace ConsoleTest
                 {
                     if (isParam)
                     {
-                        sb.Append(ProcessStr(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
+                        sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
                     }
                     else
                     {
-                        sb.Append(_cache[lang][key.ToString()].ProcessStr(lang, paramModel));
+                        sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
                     }
                     key.Clear();
                     start = false;
