@@ -90,6 +90,11 @@ namespace ConsoleTest
             dicZh.Add("System", "方舟六");
             dicZh.Add("testWork", "修改{#Agent}设置 - 调整信用余额[{#Game}](分给下级{#Player} 额度{#Amount})");
 
+            for (int i = 0; i < 100000; i++)
+            {
+                dicZh.Add($"BetNo.Key{i}", $"BetNoKey{i}");
+            }
+
             dicEn.Add(sentenceKey, "Hi, I'm {#Player}, this is {System}, the game is {#Game}");
             dicEn.Add(sentenceKey2, "Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
             dicEn.Add("PK10", "PK10");
@@ -110,9 +115,11 @@ namespace ConsoleTest
             #endregion
 
             var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
-            //var q = "sentenceKey".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
             var a = "";
             var b = "";
+            var c = "";
+            var d = "";
+            var e = "";
             //var txt = "";
 
             //Console.WriteLine("---");
@@ -128,60 +135,57 @@ namespace ConsoleTest
             var xx = JsonConvert.SerializeObject(nn);
             Action parallerRenderA = () =>
             {
-
-                //Parallel.For((long)0, 1000000, p =>
-                //{
-                //    a = x.Localize("zh");
-                //});
                 for (int i = 0; i < 1000000; i++)
                 {
-                    //a = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}"
-                    //.AddParams(new { GameA = "AA", GameB = "BB", GameC = "CC", GameD = "DD", GameE = "EE", GameF = "FF" });
-                    a = x.Localize("zh");
+                    a = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}"
+                    .AddParams(new { GameA = "AA", GameB = "BB", GameC = "CC", GameD = "DD", GameE = "EE", GameF = "FF" });
                 }
             };
             Action parallerRenderB = () =>
             {
-                //Parallel.For((long)0, 1000000, p =>
-                //{
-                //    //b = $"{{{sentenceKey2}}}".Localize("zh");
-                //    b = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
-                //});
                 for (int i = 0; i < 1000000; i++)
                 {
                     b = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
                 }
             };
+            Action parallerRenderC = () =>
+            {
+                for (int i = 0; i < 1000000; i++)
+                {
+                    c = x.Localize("zh");
+                }
+            };
 
-            //Action actionReplace5 = () =>
-            //{
-            //    var rgx = new Regex(@"{(.*?)}");
-            //    var parts = rgx.Split("Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
-            //    for (var i = 0; i < 1000000; i++)
-            //    {
-            //        var sb = new StringBuilder();
-            //        foreach (var item in parts)
-            //        {
-            //            string temp;
-            //            if (dicZh.TryGetValue(item, out var v))
-            //            {
-            //                temp = v;
-            //            }
-            //            else
-            //            {
-            //                temp = item;
-            //            }
-            //            sb.Append(temp);
-            //        }
-            //        txt = sb.ToString();
-            //    }
-            //};
+            Action parallerRenderD = () =>
+            {
+                for (int i = 0; i < 10000; i += 3)
+                {
+                    d = $"{{BetNo.Key{i}}},{{BetNo.Key{i + 1}}},{{BetNo.Key{i + 2}}}".Localize("zh");
+                }
+            };
 
-            Watch($"Add Params 6個 Property   ", parallerRenderA);
-            Watch($"句子 無動態取代 ", parallerRenderB);
+            Action parallerRenderE = () =>
+            {
+                for (int i = 15000; i < 16000; i += 3)
+                {
+                    e = $"{{BetNo.Key{i}}},{{BetNo.Key{i + 1}}},{{BetNo.Key{i + 2}}}".Localize("zh");
+                }
+            };
+
+   
+
+            //Watch($"1.Add Params 6個 Property   ", parallerRenderA);
+            //Watch($"2.句子 無動態取代 ", parallerRenderB);
+            //Watch($"3.句子 動態取代 2個動態參數+1個靜態參數+1個由動態轉靜態的參數", parallerRenderC);
+            Watch($"4.靜態句子 1萬次 ", parallerRenderD);
+            Watch($"5.靜態句子 1千次 ", parallerRenderE);
             //Watch($"句子 Replace5 ", actionReplace5);
-            Console.WriteLine(a);
-            Console.WriteLine(b);
+            Console.WriteLine("\r\n");
+            Console.WriteLine("1:" + a);
+            Console.WriteLine("2:" + b);
+            Console.WriteLine("3:" + c);
+            Console.WriteLine("4:" + d);
+            Console.WriteLine("5:" + e);
             //Console.WriteLine(txt);
 
 
@@ -227,6 +231,30 @@ namespace ConsoleTest
             //Console.Write("--------------------------------");
             //Console.Write("\r\n\r\n");
             //Console.Write($"正常語句不受影響可相容既有資料: {"這是皆凱科技".Localize("zh")}");
+
+            //Action actionReplace5 = () =>
+            //{
+            //    var rgx = new Regex(@"{(.*?)}");
+            //    var parts = rgx.Split("Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
+            //    for (var i = 0; i < 1000000; i++)
+            //    {
+            //        var sb = new StringBuilder();
+            //        foreach (var item in parts)
+            //        {
+            //            string temp;
+            //            if (dicZh.TryGetValue(item, out var v))
+            //            {
+            //                temp = v;
+            //            }
+            //            else
+            //            {
+            //                temp = item;
+            //            }
+            //            sb.Append(temp);
+            //        }
+            //        txt = sb.ToString();
+            //    }
+            //};
 
             Console.ReadLine();
         }
@@ -283,18 +311,19 @@ namespace ConsoleTest
                         var exprList = new List<Expression>();
                         var targetExpr = Expression.Parameter(typeof(object), "target");
                         var memberExpr = Expression.Convert(targetExpr, paramData.GetType());
+                        var pipeExpr = Expression.Constant("|");
                         var props = paramData.GetType().GetProperties();
                         var sb = new StringBuilder();
                         exprList.Add(Expression.Constant(str));
-                        exprList.Add(Expression.Constant("|"));
+                        exprList.Add(pipeExpr);
                         foreach (var prop in props)
                         {
                             var propExpression = Expression.Property(memberExpr, prop);
                             var constExpression = Expression.Constant(propExpression.Member.Name);
                             exprList.Add(constExpression);
-                            exprList.Add(Expression.Constant("|"));
+                            exprList.Add(pipeExpr);
                             exprList.Add(propExpression);
-                            exprList.Add(Expression.Constant("|"));
+                            exprList.Add(pipeExpr);
                         }
 
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
@@ -307,8 +336,6 @@ namespace ConsoleTest
                 }
             }
 
-
-            var nn = lambda.Invoke(paramData);
             return $"##{lambda.Invoke(paramData)}";
 
             //var param = JsonConvert.SerializeObject(new { Key = str.Replace("{", "").Replace("}", ""), Data = paramData });
@@ -342,19 +369,20 @@ namespace ConsoleTest
                 {
                     if (!_processedCache.TryGetValue(lang, out langDic))
                     {
-                        _processedCache.Add(lang, new Dictionary<string, string>());
+                        langDic = new Dictionary<string, string>();
+                        _processedCache.Add(lang, langDic);
                     }
                 }
             }
 
-            if (!_processedCache[lang].TryGetValue(str, out var result))
+            if (!langDic.TryGetValue(str, out var result))
             {
                 lock (_processedCache)
                 {
-                    if (!_processedCache[lang].TryGetValue(str, out result))
+                    if (!langDic.TryGetValue(str, out result))
                     {
                         result = Parser(str, lang, paramModel);
-                        _processedCache[lang].Add(str, result);
+                        langDic.Add(str, result);
                     }
                 }
             }
