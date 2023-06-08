@@ -51,7 +51,37 @@ namespace ConsoleTest
             var sentenceKey = "sentenceKey";
             var sentenceKey2 = "sentenceKey2";
 
-            var dicZh = new Dictionary<string, string>();
+            var dicZh = new Dictionary<string, string>() {
+                { "BetNo2121", "二全中" },
+                { "BetNo2123", "二特串" },
+                { "BetNo2141", "四全中" },
+                { "BetNo6103", "过关" },
+                { "BetNo112001", "正1大" },
+                { "BetNo122001", "正2大" },
+                { "BetNo132001", "正3大" },
+                { "BetNo142001", "正4大" },
+                { "BetNo152001", "正5大" },
+                { "BetNo2231", "三肖连中" },
+                { "BetNo2501", "五中一" },
+                { "BetNo2251", "五肖连中" },
+
+                { "Zodiac1", "鼠" },
+                { "Zodiac2", "牛" },
+                { "Zodiac3", "虎" },
+                { "Zodiac4", "兔" },
+                { "Zodiac5", "龙" },
+                { "Zodiac6", "蛇" },
+                { "Zodiac7", "马" },
+                { "Zodiac8", "羊" },
+
+                { "Tail1", "1尾" },
+                { "Tail2", "2尾" },
+                { "Tail3", "3尾" },
+                { "Tail4", "4尾" },
+
+                { "Drag", "拖" },
+                { "Bump", "碰" }
+            };
             var dicEn = new Dictionary<string, string>();
             dicZh.Add(sentenceKey, "嗨! 這是{#Game}，我是玩家{#Player}，這是{System}");
             dicZh.Add(sentenceKey2, "嗨! 這是{PK10}，我是玩家{MarkSix}，這是{System}");
@@ -67,8 +97,8 @@ namespace ConsoleTest
             dicEn.Add("System", "FZ6");
             dicEn.Add("testWork", "修改{Agent}设置 - 调整信用余额[{Game}](分给下级{Player} 额度{Amount})");
 
-            Extension.SetLanguages(dicZh, "zh");
-            Extension.SetLanguages(dicEn, "en");
+            LocalizationUtil.AddLanguage(dicZh, "zh");
+            LocalizationUtil.AddLanguage(dicEn, "en");
 
             //var logRemark = "{testWork}".AddParams(new {
             //        Agent ="AAAAA",
@@ -80,16 +110,22 @@ namespace ConsoleTest
             #endregion
 
             var x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{PK10}" });
-            var q = "sentenceKey".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            //var q = "sentenceKey".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
             var a = "";
             var b = "";
-            var txt = "";
+            //var txt = "";
 
-            Console.WriteLine("---");
-            Console.WriteLine(x.Localize("zh"));
-            Console.WriteLine("\r\n\r\n");
-            Console.WriteLine(q.Localize("zh"));
-
+            //Console.WriteLine("---");
+            //Console.WriteLine(x.Localize("zh"));
+            //Console.WriteLine("\r\n\r\n");
+            //Console.WriteLine(q.Localize("zh"));
+            var nn = new QQ
+            {
+                Game = "Game",
+                Player = "Player",
+                System = "System",
+            };
+            var xx = JsonConvert.SerializeObject(nn);
             Action parallerRenderA = () =>
             {
 
@@ -99,6 +135,8 @@ namespace ConsoleTest
                 //});
                 for (int i = 0; i < 1000000; i++)
                 {
+                    //a = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}"
+                    //.AddParams(new { GameA = "AA", GameB = "BB", GameC = "CC", GameD = "DD", GameE = "EE", GameF = "FF" });
                     a = x.Localize("zh");
                 }
             };
@@ -106,40 +144,40 @@ namespace ConsoleTest
             {
                 //Parallel.For((long)0, 1000000, p =>
                 //{
-                //    b = $"{{{sentenceKey2}}}".Localize("zh");
+                //    //b = $"{{{sentenceKey2}}}".Localize("zh");
+                //    b = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
                 //});
                 for (int i = 0; i < 1000000; i++)
                 {
-                    b = "{sentenceKey2}".Localize("zh");
-
+                    b = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
                 }
             };
 
-            Action actionReplace5 = () =>
-            {
-                var rgx = new Regex(@"{(.*?)}");
-                var parts = rgx.Split("Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
-                for (var i = 0; i < 1000000; i++)
-                {
-                    var sb = new StringBuilder();
-                    foreach (var item in parts)
-                    {
-                        string temp;
-                        if (dicZh.TryGetValue(item, out var v))
-                        {
-                            temp = v;
-                        }
-                        else
-                        {
-                            temp = item;
-                        }
-                        sb.Append(temp);
-                    }
-                    txt = sb.ToString();
-                }
-            };
+            //Action actionReplace5 = () =>
+            //{
+            //    var rgx = new Regex(@"{(.*?)}");
+            //    var parts = rgx.Split("Hi, I'm {MarkSix}, this is {System}, the game is {PK10}");
+            //    for (var i = 0; i < 1000000; i++)
+            //    {
+            //        var sb = new StringBuilder();
+            //        foreach (var item in parts)
+            //        {
+            //            string temp;
+            //            if (dicZh.TryGetValue(item, out var v))
+            //            {
+            //                temp = v;
+            //            }
+            //            else
+            //            {
+            //                temp = item;
+            //            }
+            //            sb.Append(temp);
+            //        }
+            //        txt = sb.ToString();
+            //    }
+            //};
 
-            Watch($"句子 動態取代   ", parallerRenderA);
+            Watch($"Add Params 6個 Property   ", parallerRenderA);
             Watch($"句子 無動態取代 ", parallerRenderB);
             //Watch($"句子 Replace5 ", actionReplace5);
             Console.WriteLine(a);
@@ -147,11 +185,11 @@ namespace ConsoleTest
             //Console.WriteLine(txt);
 
 
-            x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
-            Console.WriteLine(x.Localize("zh"));
-            Console.Write("\r\n\r\n");
-            x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
-            Console.WriteLine(x.Localize("zh"));
+            //x = "{sentenceKey}".AddParams(new { Player = "Ricky", Game = "{MarkSix}" });
+            //Console.WriteLine(x.Localize("zh"));
+            //Console.Write("\r\n\r\n");
+            //x = "{sentenceKey}".AddParams(new { Player = "Ricky777", Game = "{PK10}" });
+            //Console.WriteLine(x.Localize("zh"));
 
 
             //// --zh:"嗨! 這是{#Game}，我是玩家{#Player}，這是{System}--"
@@ -204,18 +242,36 @@ namespace ConsoleTest
         }
     }
 
-
-
-    public static class Extension
+    /// <summary>
+    /// 多語系工具
+    /// </summary>
+    public static class LocalizationUtil
     {
-        private delegate string delgGetJToken(object instance);
+        /// <summary>
+        /// 字典表
+        /// </summary>
+        public static Dictionary<string, Dictionary<string, string>> Languages => _langCache;
+
+        private delegate string delgGetParam(object instance);
         private delegate string delgGetProperty(object instance);
         private static Dictionary<string, delgGetProperty> _delgCacheGetProperty = new Dictionary<string, delgGetProperty>();
-        private static Dictionary<string, Dictionary<string, string>> _cache = new Dictionary<string, Dictionary<string, string>>();
-        private static Dictionary<string, delgGetJToken> _delgCache = new Dictionary<string, delgGetJToken>();
+        private static Dictionary<string, Dictionary<string, string>> _langCache = new Dictionary<string, Dictionary<string, string>>();
+        private static Dictionary<string, Dictionary<string, string>> _processedCache = new Dictionary<string, Dictionary<string, string>>();
+        private static Dictionary<string, delgGetParam> _delgCache = new Dictionary<string, delgGetParam>();
 
-        public static void SetLanguages(Dictionary<string, string> dic, string langCode) => _cache.Add(langCode, dic);
+        /// <summary>
+        /// 设定语系档
+        /// </summary>
+        /// <param name="dic"></param>
+        /// <param name="langCode"></param>
+        public static void AddLanguage(Dictionary<string, string> dic, string langCode) => _langCache.Add(langCode, dic);
 
+        /// <summary>
+        /// 加入动态参数
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="paramData"></param>
+        /// <returns></returns>
         public static string AddParams(this string str, object paramData)
         {
             if (!_delgCacheGetProperty.TryGetValue(str, out var lambda))
@@ -259,6 +315,12 @@ namespace ConsoleTest
             //return $"##{param}";
         }
 
+        /// <summary>
+        /// 转换为多语系
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
         public static string Localize(this string str, string lang)
         {
             var paramModel = default(Dictionary<string, string>);
@@ -271,31 +333,30 @@ namespace ConsoleTest
                 {
                     paramModel.Add(obj[i], obj[i + 1]);
                 }
+                return Parser(str, lang, paramModel);
             }
-            return Parser(str, lang, paramModel);
-            return "";
-        }
 
-        private static string ProcessString(this string str, string lang, object paramModel)
-        {
-            var result = "";
-            if (paramModel == null)
+            if (!_processedCache.TryGetValue(lang, out var langDic))
             {
-                if (!_cache[lang].TryGetValue(str, out result))
+                lock (_processedCache)
                 {
-                    lock (_cache[lang])
+                    if (!_processedCache.TryGetValue(lang, out langDic))
                     {
-                        if (!_cache[lang].TryGetValue(str, out result))
-                        {
-                            result = Parser(str, lang, paramModel);
-                            _cache[lang].Add(str, result);
-                        }
+                        _processedCache.Add(lang, new Dictionary<string, string>());
                     }
                 }
             }
-            else
+
+            if (!_processedCache[lang].TryGetValue(str, out var result))
             {
-                result = Parser(str, lang, paramModel);
+                lock (_processedCache)
+                {
+                    if (!_processedCache[lang].TryGetValue(str, out result))
+                    {
+                        result = Parser(str, lang, paramModel);
+                        _processedCache[lang].Add(str, result);
+                    }
+                }
             }
             return result;
         }
@@ -317,11 +378,11 @@ namespace ConsoleTest
                 {
                     if (isParam)
                     {
-                        sb.Append(ProcessString(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
+                        sb.Append(Parser(ProcessParam(key.ToString(), paramModel).Invoke(paramModel), lang, paramModel));
                     }
                     else
                     {
-                        sb.Append(_cache[lang][key.ToString()].ProcessString(lang, paramModel));
+                        sb.Append(_langCache[lang][key.ToString()].Parser(lang, paramModel));
                     }
                     key.Clear();
                     start = false;
@@ -348,7 +409,7 @@ namespace ConsoleTest
             return result;
         }
 
-        private static delgGetJToken ProcessParam(string str, object paramModel)
+        private static delgGetParam ProcessParam(string str, object paramModel)
         {
             if (!_delgCache.TryGetValue(str, out var lambda))
             {
@@ -373,7 +434,6 @@ namespace ConsoleTest
                         IndexExpression indexExpr = Expression.Property(memberExpr, indexer, keyExpr);
                         exprList.Add(indexExpr);
 
-                        //exprList.Add(Expression.Property(memberExpr, key.ToString()));
                         key.Clear();
                         sb.Clear();
                         start = false;
@@ -382,7 +442,7 @@ namespace ConsoleTest
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
                         var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
                         var methodExpr = Expression.Call(method, paramsExpr);
-                        var lambdaExpr = Expression.Lambda<delgGetJToken>(methodExpr, targetExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetParam>(methodExpr, targetExpr);
                         lambda = lambdaExpr.Compile();
                         _delgCache.Add(str, lambda);
                     }
@@ -391,19 +451,6 @@ namespace ConsoleTest
 
             return lambda;
         }
-
-        private static Expression GenerateGetterLambda(PropertyInfo property)
-        {
-            // Define our instance parameter, which will be the input of the Func
-            var objParameterExpr = Expression.Parameter(typeof(object), "instance");
-            // 1. Cast the instance to the correct type
-            var instanceExpr = Expression.TypeAs(objParameterExpr, property.DeclaringType);
-            // 2. Call the getter and retrieve the value of the property
-            var propertyExpr = Expression.Property(instanceExpr, property);
-            // 3. Convert the property's value to object
-            var propertyObjExpr = Expression.Convert(propertyExpr, typeof(object));
-            // Create a lambda expression of the latest call & compile it
-            return Expression.Lambda<Func<object, object>>(propertyObjExpr, objParameterExpr);
-        }
     }
 }
+
