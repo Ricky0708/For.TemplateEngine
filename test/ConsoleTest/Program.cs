@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
@@ -90,7 +91,7 @@ namespace ConsoleTest
             dicZh.Add("System", "方舟六");
             dicZh.Add("testWork", "修改{#Agent}设置 - 调整信用余额[{#Game}](分给下级{#Player} 额度{#Amount})");
 
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 dicZh.Add($"BetNo.Key{i}", $"BetNoKey{i}");
             }
@@ -102,8 +103,10 @@ namespace ConsoleTest
             dicEn.Add("System", "FZ6");
             dicEn.Add("testWork", "修改{Agent}设置 - 调整信用余额[{Game}](分给下级{Player} 额度{Amount})");
 
-            LocalizationUtil.AddLanguage(dicZh, "zh");
-            LocalizationUtil.AddLanguage(dicEn, "en");
+            LocalizationUtil.SetLanguage(dicZh, "zh");
+            LocalizationUtil.SetLanguage(dicEn, "en");
+
+            Console.WriteLine("init done \r\n");
 
             //var logRemark = "{testWork}".AddParams(new {
             //        Agent ="AAAAA",
@@ -132,7 +135,16 @@ namespace ConsoleTest
                 Player = "Player",
                 System = "System",
             };
-            var xx = JsonConvert.SerializeObject(nn);
+
+            //Task.Run(async () =>
+            //{
+            //    while (true)
+            //    {
+            //        LocalizationUtil.SetLanguage(dicZh, "zh");
+            //        await Task.Delay(10000);
+            //    }
+            //});
+
             Action parallerRenderA = () =>
             {
                 for (int i = 0; i < 1000000; i++)
@@ -145,7 +157,7 @@ namespace ConsoleTest
             {
                 for (int i = 0; i < 1000000; i++)
                 {
-                    b = "{BetNo2251}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
+                    b = "{BetNo2251}-{BetNo.Key67352}-{BetNo.Key67352}-{BetNo.Key67352}-{Zodiac1},{Zodiac2},{Zodiac3},{Zodiac4} [{Drag}] {Zodiac5},{Zodiac6},{Zodiac7},{Zodiac8}{BetNo6103}-{BetNo112001},{BetNo122001},{BetNo132001},{BetNo142001},{BetNo152001}".Localize("zh");
                 }
             };
             Action parallerRenderC = () =>
@@ -158,9 +170,16 @@ namespace ConsoleTest
 
             Action parallerRenderD = () =>
             {
+
+                //Parallel.For(0, 900000, i =>
+                //{
+                //    d = $"{{BetNo.Key{i}}},{{BetNo.Key{i + 1}}},{{BetNo.Key{i + 2}}}".Localize("zh");
+                //});
+
                 for (int i = 0; i < 10000; i += 3)
                 {
                     d = $"{{BetNo.Key{i}}},{{BetNo.Key{i + 1}}},{{BetNo.Key{i + 2}}}".Localize("zh");
+                    //d = "{BetNo.Key36587}.{BetNo.Key36587}.{BetNo.Key36587}.{BetNo.Key36587}".Localize("zh");
                 }
             };
 
@@ -172,11 +191,9 @@ namespace ConsoleTest
                 }
             };
 
-   
-
-            //Watch($"1.Add Params 6個 Property   ", parallerRenderA);
-            //Watch($"2.句子 無動態取代 ", parallerRenderB);
-            //Watch($"3.句子 動態取代 2個動態參數+1個靜態參數+1個由動態轉靜態的參數", parallerRenderC);
+            Watch($"1.Add Params 6個 Property   ", parallerRenderA);
+            Watch($"2.句子 無動態取代 ", parallerRenderB);
+            Watch($"3.句子 動態取代 2個動態參數+1個靜態參數+1個由動態轉靜態的參數", parallerRenderC);
             Watch($"4.靜態句子 1萬次 ", parallerRenderD);
             Watch($"5.靜態句子 1千次 ", parallerRenderE);
             //Watch($"句子 Replace5 ", actionReplace5);
@@ -279,20 +296,55 @@ namespace ConsoleTest
         /// 字典表
         /// </summary>
         public static Dictionary<string, Dictionary<string, string>> Languages => _langCache;
-
-        private delegate string delgGetParam(object instance);
-        private delegate string delgGetProperty(object instance);
-        private static Dictionary<string, delgGetProperty> _delgCacheGetProperty = new Dictionary<string, delgGetProperty>();
-        private static Dictionary<string, Dictionary<string, string>> _langCache = new Dictionary<string, Dictionary<string, string>>();
-        private static Dictionary<string, Dictionary<string, string>> _processedCache = new Dictionary<string, Dictionary<string, string>>();
-        private static Dictionary<string, delgGetParam> _delgCache = new Dictionary<string, delgGetParam>();
+        private delegate string delgGetData(object instance);
+        private static readonly Dictionary<string, Dictionary<string, string>> _langCache = new Dictionary<string, Dictionary<string, string>>();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _processedCache = new ConcurrentDictionary<string, ConcurrentDictionary<string, string>>();
+        private static readonly ConcurrentDictionary<string, delgGetData> _delgCacheGetParam = new ConcurrentDictionary<string, delgGetData>();
+        private static readonly ConcurrentDictionary<string, delgGetData> _delgCacheGetProperty = new ConcurrentDictionary<string, delgGetData>();
 
         /// <summary>
         /// 设定语系档
         /// </summary>
         /// <param name="dic"></param>
         /// <param name="langCode"></param>
-        public static void AddLanguage(Dictionary<string, string> dic, string langCode) => _langCache.Add(langCode, dic);
+        public static void SetLanguage(Dictionary<string, string> dic, string langCode)
+        {
+
+            if (!_langCache.ContainsKey(langCode))
+            {
+                lock (_langCache)
+                {
+                    if (!_langCache.ContainsKey(langCode))
+                    {
+                        _langCache.Add(langCode, dic);
+                    }
+                }
+            }
+            if (!_processedCache.ContainsKey(langCode))
+            {
+                lock (_processedCache)
+                {
+                    if (!_processedCache.ContainsKey(langCode))
+                    {
+                        _processedCache.TryAdd(langCode, new ConcurrentDictionary<string, string>());
+                    }
+                }
+            }
+
+            _langCache[langCode] = dic;
+            lock (_processedCache[langCode])
+            {
+                _processedCache[langCode].Clear();
+            }
+            lock (_delgCacheGetParam)
+            {
+                _delgCacheGetParam.Clear();
+            }
+            lock (_delgCacheGetProperty)
+            {
+                _delgCacheGetProperty.Clear();
+            }
+        }
 
         /// <summary>
         /// 加入动态参数
@@ -311,30 +363,30 @@ namespace ConsoleTest
                         var exprList = new List<Expression>();
                         var targetExpr = Expression.Parameter(typeof(object), "target");
                         var memberExpr = Expression.Convert(targetExpr, paramData.GetType());
-                        var pipeExpr = Expression.Constant("|");
                         var props = paramData.GetType().GetProperties();
                         var sb = new StringBuilder();
                         exprList.Add(Expression.Constant(str));
-                        exprList.Add(pipeExpr);
+                        exprList.Add(Expression.Constant("|"));
                         foreach (var prop in props)
                         {
                             var propExpression = Expression.Property(memberExpr, prop);
                             var constExpression = Expression.Constant(propExpression.Member.Name);
                             exprList.Add(constExpression);
-                            exprList.Add(pipeExpr);
+                            exprList.Add(Expression.Constant("|"));
                             exprList.Add(propExpression);
-                            exprList.Add(pipeExpr);
+                            exprList.Add(Expression.Constant("|"));
                         }
 
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
                         var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
                         var methodExpr = Expression.Call(method, paramsExpr);
-                        var lambdaExpr = Expression.Lambda<delgGetProperty>(methodExpr, targetExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetData>(methodExpr, targetExpr);
                         lambda = lambdaExpr.Compile();
-                        _delgCacheGetProperty.Add(str, lambda);
+                        _delgCacheGetProperty.TryAdd(str, lambda);
                     }
                 }
             }
+
 
             return $"##{lambda.Invoke(paramData)}";
 
@@ -363,29 +415,18 @@ namespace ConsoleTest
                 return Parser(str, lang, paramModel);
             }
 
-            if (!_processedCache.TryGetValue(lang, out var langDic))
+            if (!_processedCache[lang].TryGetValue(str, out var result))
             {
-                lock (_processedCache)
+                lock (_processedCache[lang])
                 {
-                    if (!_processedCache.TryGetValue(lang, out langDic))
+                    if (!_processedCache[lang].TryGetValue(str, out result))
                     {
-                        langDic = new Dictionary<string, string>();
-                        _processedCache.Add(lang, langDic);
+                        result = Parser(str, lang, paramModel);
+                        _processedCache[lang].TryAdd(str, result);
                     }
                 }
             }
 
-            if (!langDic.TryGetValue(str, out var result))
-            {
-                lock (_processedCache)
-                {
-                    if (!langDic.TryGetValue(str, out result))
-                    {
-                        result = Parser(str, lang, paramModel);
-                        langDic.Add(str, result);
-                    }
-                }
-            }
             return result;
         }
 
@@ -437,21 +478,19 @@ namespace ConsoleTest
             return result;
         }
 
-        private static delgGetParam ProcessParam(string str, object paramModel)
+        private static delgGetData ProcessParam(string str, object paramModel)
         {
-            if (!_delgCache.TryGetValue(str, out var lambda))
+            if (!_delgCacheGetParam.TryGetValue(str, out var lambda))
             {
-                lock (_delgCache)
+                lock (_delgCacheGetParam)
                 {
-                    if (!_delgCache.TryGetValue(str, out lambda))
+                    if (!_delgCacheGetParam.TryGetValue(str, out lambda))
                     {
                         var sb = new StringBuilder();
-                        var start = false;
                         var key = new StringBuilder();
-                        var exprList = new List<Expression>();
+                        //var exprList = new List<Expression>();
                         var targetExpr = Expression.Parameter(typeof(object), "target");
                         var memberExpr = Expression.Convert(targetExpr, paramModel.GetType());
-                        var isParam = false;
 
                         var keyExpr = Expression.Constant(str);
                         PropertyInfo indexer = (from p in memberExpr.Type.GetDefaultMembers().OfType<PropertyInfo>()
@@ -460,19 +499,17 @@ namespace ConsoleTest
                                                 where q.Length == 1 && q[0].ParameterType == typeof(string)
                                                 select p).Single();
                         IndexExpression indexExpr = Expression.Property(memberExpr, indexer, keyExpr);
-                        exprList.Add(indexExpr);
+                        //exprList.Add(indexExpr);
 
                         key.Clear();
                         sb.Clear();
-                        start = false;
-                        isParam = false;
 
-                        var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
-                        var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
-                        var methodExpr = Expression.Call(method, paramsExpr);
-                        var lambdaExpr = Expression.Lambda<delgGetParam>(methodExpr, targetExpr);
+                        //var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
+                        //var paramsExpr = Expression.NewArrayInit(typeof(object), exprList);
+                        //var methodExpr = Expression.Call(method, paramsExpr);
+                        var lambdaExpr = Expression.Lambda<delgGetData>(indexExpr, targetExpr);
                         lambda = lambdaExpr.Compile();
-                        _delgCache.Add(str, lambda);
+                        _delgCacheGetParam.TryAdd(str, lambda);
                     }
                 }
             }
