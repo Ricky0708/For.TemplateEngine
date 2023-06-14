@@ -41,6 +41,63 @@ namespace ConsoleTest
             //TestB();
             //TestC();
             //TestDForDemo();
+
+            var a = "asdfasfsakfhkfjhewrnfgjdhgsdfhgrehlnlfdshgsdfg{asfasdfasdfdasfaewrqtre";
+            Action actA = () =>
+            {
+                for (int i = 0; i < 1000000; i++)
+                {
+                    var sb = new StringBuilder();
+                    var start = false;
+                    var key = new StringBuilder();
+                    var isParam = false;
+                    var result = "";
+                    foreach (var chr in a)
+                    {
+                        sb.Append(chr);
+                        //if (chr == '{')
+                        //{
+                        //    start = true;
+                        //}
+                        //else if (chr == '}')
+                        //{
+                        //    if (isParam)
+                        //    {
+                        //    }
+                        //    else
+                        //    {
+                        //    }
+                        //    start = false;
+                        //    isParam = false;
+                        //}
+                        //else if (start && chr == '#')
+                        //{
+                        //    isParam = true;
+                        //}
+                        //else
+                        //{
+                        //    if (start)
+                        //    {
+                        //    }
+                        //    else
+                        //    {
+                        //    }
+                        //}
+                    }
+                }
+
+            };
+            Action actB = () =>
+            {
+                for (int i = 0; i < 1000000; i++)
+                {
+                    var n = a.IndexOf("{");
+                }
+            };
+
+            Watch("A", actA);
+            Watch("B", actB);
+
             TestDForDemoB();
         }
 
@@ -287,6 +344,13 @@ namespace ConsoleTest
         }
     }
 
+
+
+    public enum LangCode
+    {
+
+    }
+
     /// <summary>
     /// 多語系工具
     /// </summary>
@@ -295,10 +359,10 @@ namespace ConsoleTest
         /// <summary>
         /// 字典表
         /// </summary>
-        public static Dictionary<string, Dictionary<string, string>> Languages => _langCache;
+        public static Dictionary<LangCode, Dictionary<string, string>> Languages => _langCache;
         private delegate string delgGetData(object instance);
-        private static readonly Dictionary<string, Dictionary<string, string>> _langCache = new Dictionary<string, Dictionary<string, string>>();
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _processedCache = new ConcurrentDictionary<string, ConcurrentDictionary<string, string>>();
+        private static readonly Dictionary<LangCode, Dictionary<string, string>> _langCache = new Dictionary<LangCode, Dictionary<string, string>>();
+        private static readonly ConcurrentDictionary<LangCode, ConcurrentDictionary<string, string>> _processedCache = new ConcurrentDictionary<LangCode, ConcurrentDictionary<string, string>>();
         private static readonly ConcurrentDictionary<string, delgGetData> _delgCacheGetParam = new ConcurrentDictionary<string, delgGetData>();
         private static readonly ConcurrentDictionary<string, delgGetData> _delgCacheGetProperty = new ConcurrentDictionary<string, delgGetData>();
 
@@ -307,7 +371,7 @@ namespace ConsoleTest
         /// </summary>
         /// <param name="dic"></param>
         /// <param name="langCode"></param>
-        public static void SetLanguage(Dictionary<string, string> dic, string langCode)
+        public static void SetLanguage(Dictionary<string, string> dic, LangCode langCode)
         {
 
             if (!_langCache.ContainsKey(langCode))
@@ -366,15 +430,15 @@ namespace ConsoleTest
                         var props = paramData.GetType().GetProperties();
                         var sb = new StringBuilder();
                         exprList.Add(Expression.Constant(str));
-                        exprList.Add(Expression.Constant("|"));
+                        exprList.Add(Expression.Constant("^"));
                         foreach (var prop in props)
                         {
                             var propExpression = Expression.Property(memberExpr, prop);
                             var constExpression = Expression.Constant(propExpression.Member.Name);
                             exprList.Add(constExpression);
-                            exprList.Add(Expression.Constant("|"));
+                            exprList.Add(Expression.Constant("^"));
                             exprList.Add(propExpression);
-                            exprList.Add(Expression.Constant("|"));
+                            exprList.Add(Expression.Constant("^"));
                         }
 
                         var method = typeof(string).GetMethod("Concat", new[] { typeof(object[]) });
@@ -400,12 +464,12 @@ namespace ConsoleTest
         /// <param name="str"></param>
         /// <param name="lang"></param>
         /// <returns></returns>
-        public static string Localize(this string str, string lang)
+        public static string Localize(this string str, LangCode lang)
         {
             var paramModel = default(Dictionary<string, string>);
             if (str.StartsWith("##"))
             {
-                var obj = str.Substring(2).Split('|');
+                var obj = str.Substring(2).Split('^');
                 str = obj[0];
                 paramModel = new Dictionary<string, string>();
                 for (int i = 1; i < obj.Length - 1; i += 2)
@@ -430,7 +494,7 @@ namespace ConsoleTest
             return result;
         }
 
-        private static string Parser(this string str, string lang, object paramModel)
+        private static string Parser(this string str, LangCode lang, object paramModel)
         {
             var sb = new StringBuilder();
             var start = false;
